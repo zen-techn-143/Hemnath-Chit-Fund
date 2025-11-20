@@ -207,28 +207,12 @@ input:focus {
  /* Set the default (Theme A) background */
  /* background-color: #97b8ff;  */
  /* background: black; */
- background: var(--theme-bg-page) !important;
+ background:rgb(116 86 102) !important;
  min-height: 100vh; 
  transition: background-color 0.3s ease;
 }
 
-/* Theme B */
-.theme-b .App {
- background: var(--theme-bg-page) !important;
- min-height: 100vh;
-}
 
-/* Theme C (Ruby Red/Maroon) */
-.theme-c .App {
- background-color: var(--theme-bg-page) !important;
- min-height: 100vh;
-}
-
-
-.theme-d .App {
-background-color: var(--theme-bg-page) !important; 
- min-height: 100vh;
-}
 .form-select:focus {
   border: 0 !important;
   border-radius: 4px !important;
@@ -255,7 +239,7 @@ background-color: var(--theme-bg-page) !important;
 }
 
 .main {
- background: var(--theme-bg-main-content) !important;
+ background:#cbca9c!important;
   padding-top: 65px;
   border-radius: 10px;
   padding: 20px;

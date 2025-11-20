@@ -27,7 +27,7 @@ a {
   z-index: 999;
   position: fixed;
   margin-left: 0px;
-background-color: var(--theme-bg-sidebar) !important;
+background-color: #392637;
   padding-top: 65px;
   top: 0;
 }
