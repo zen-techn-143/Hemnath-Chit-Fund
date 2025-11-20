@@ -1,0 +1,94 @@
+{
+  "name": "gopuramfinance",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A billing application for GOPURAM FINANCE.",
+  "author": "Zentexus Technologies",
+  "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.15.14",
+    "@mui/material": "^5.15.14",
+    "@mui/system": "^5.15.14",
+    "@mui/x-date-pickers": "^5.0.20",
+    "@react-pdf/renderer": "^3.4.4",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.7.9",
+    "bootstrap": "^5.3.5",
+    "chart.js": "^4.4.2",
+    "dayjs": "^1.11.13",
+    "dexie": "^4.0.11",
+    "file-saver": "^2.0.5",
+    "font-awesome": "^4.7.0",
+    "framer-motion": "^12.23.24",
+    "google-translate-api": "^2.3.0",
+    "i18next": "^23.16.8",
+    "idb": "^8.0.2",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
+    "lodash": "^4.17.21",
+    "lodash.debounce": "^4.0.8",
+    "material-react-table": "^2.13.3",
+    "papaparse": "^5.5.3",
+    "path-browserify": "^1.0.1",
+    "react": "^18.3.1",
+    "react-bootstrap": "^2.10.9",
+    "react-chartjs-2": "^5.2.0",
+    "react-datepicker": "^6.9.0",
+    "react-device-detect": "^2.2.3",
+    "react-dom": "^18.3.1",
+    "react-dropdown-select": "^4.11.2",
+    "react-i18next": "^15.2.0",
+    "react-icons": "^5.2.1",
+    "react-responsive": "^10.0.0",
+    "react-router-dom": "^6.23.1",
+    "react-scripts": "^5.0.1",
+    "react-select": "^5.10.1",
+    "react-to-print": "^2.15.1",
+    "react-toastify": "^10.0.5",
+    "react-tooltip": "^5.26.4",
+    "react-webcam": "^7.2.0",
+    "sql.js": "^1.12.0",
+    "transliteration": "^2.3.5",
+    "web-vitals": "^2.1.4",
+    "xlsx": "^0.18.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "electron": "electron ."
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.26.4",
+    "@babel/core": "^7.26.8",
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@babel/preset-env": "^7.26.8",
+    "concurrently": "^9.1.2",
+    "electron": "^34.1.1",
+    "electron-builder": "^25.1.8",
+    "electron-packager": "^17.1.2",
+    "wait-on": "^8.0.2"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

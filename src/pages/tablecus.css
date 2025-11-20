@@ -1,0 +1,115 @@
+
+.balance-table-wrapper .table {
+  width: 100%;
+  border-collapse: collapse;
+   border: 1px solid #222222 !important;
+}
+  
+.balance-table-wrapper .table th,
+.balance-table-wrapper .table td {
+  text-align: center;
+  vertical-align: middle;
+  padding: 8px 8px !important;
+  border: 2px solid #222222;
+  max-width: 90px;
+  font-size: 11px;
+}
+  
+.balance-table-wrapper .table thead th {
+ 
+  font-weight: bold;
+  white-space: normal;
+}
+.balance-table-wrapper .table thead th:nth-child(1){
+  
+  padding: 0 30px !important;  
+}
+.balance-table-wrapper .table tbody td {
+  
+  white-space: normal;
+}
+.balance-table-wrapper .dashboard span {
+  display: block;
+  margin: 0px 0;
+}
+  
+/* Text center utility inside balance table */
+.balance-table-wrapper .text-center {
+  text-align: center;
+}
+  
+/* Badge customizations scoped */
+.balance-table-wrapper .badge {
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 12px;
+}
+  
+.balance-table-wrapper .badge-status {
+  min-width: 20px;
+  min-height: 20px;
+  display: inline-block;
+}
+  
+@media (max-width: 768px) {
+  .balance-table-wrapper .table th,
+  .balance-table-wrapper .table td {
+    font-size: 12px;
+    padding: 8px 5px;
+  }
+}
+/* Highlight selected tab with corporate style */
+.nav-tabs .nav-link.active {
+  background-color: #4a90e2 !important; /* corporate blue */
+  color: #fff; /* white text */
+  font-weight: bold !important;
+  border-color: #4a90e2 #4a90e2 #fff !important; /* seamless tab border effect */
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+/* Non-active tabs default */
+.nav-tabs .nav-link {
+  color: #555;
+  background-color: white !important;
+  border-color: #555 #555 white !important; /* seamless tab border effect */
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  border: 1px solid #555 !important;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+.nav-tabs .nav-link.active {
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+/* In your CSS file */
+.row-red { background-color: #f8d7da !important; }
+.row-orange { background-color: #ffe5b4 !important; }
+.row-yellow { background-color: #ffffcc !important; }
+.row-yellowtest { background-color: #cff1c6 !important; }
+.notice-table-wrapper {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  overflow-x: auto;
+}
+
+.table th,
+.table td {
+  vertical-align: middle;
+  font-size: 14px;
+}
+
+.table thead th {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.badge {
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+.table tbody tr:hover {
+  background-color: #f3f4f6;
+}

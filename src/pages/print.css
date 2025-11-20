@@ -1,0 +1,15 @@
+/* print.css */
+@page {
+    size: A5 landscape;
+  }
+  
+  @media print {
+    body {
+      margin: 0;
+    }
+    .print-page {
+      width: 100%;
+      height: 100%;
+    }
+  }
+  

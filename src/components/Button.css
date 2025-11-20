@@ -1,0 +1,128 @@
+.openstock {
+  font-size: 10px;
+}
+button {
+  background: none !important;
+  border: none !important;
+}
+.whatsapp-btn {
+  margin-left: 8px;
+  background-color: #25d366 !important;
+  color: #fff;
+  border: none !important;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* .create-btn {
+  border: 1px solid#0757df !important;
+  width: 120px;
+  height: 46px;
+  color: #ffffff !important;
+  border-radius: 6px !important;
+  transition: 0.5s all;
+  font-family: "regular" !important;
+  background: #0757df !important;
+  padding: 1px;
+  margin-top: 20px;
+} */
+.choosefilebtn {
+  border: none !important;
+  width: 120px;
+  height: 46px;
+  color: #ffffff !important;
+  border-radius: 6px !important;
+  transition: 0.5s all;
+  font-family: "regular" !important;
+  background: #041a3f !important;
+  margin-top: 20px;
+  margin-left: 20px !important;
+}
+.choosefilebtn:hover {
+  background: #06285f !important; /* slightly lighter hover shade */
+}
+.previewbtn {
+  border: none !important;
+  width: 120px;
+  height: 46px;
+  color: #ffffff !important;
+  border-radius: 6px !important;
+  transition: 0.3s all;
+  font-family: "regular" !important;
+  background: #0757df !important;
+  margin-top: 20px;
+  margin-left: 20px !important;
+  cursor: pointer;
+}
+
+.add-new {
+  background-color: #0757df;
+  display: inline-block;
+}
+.close button,
+.dlt button {
+  background: none !important;
+  border: none !important;
+  color: #252525 !important;
+}
+.add-more button {
+  background: none !important;
+  border: none !important;
+  color: #0757df !important;
+}
+
+/* .delete {
+  border: 1px solid#ca293e !important;
+  width: 120px;
+  height: 46px;
+  color: #ffffff !important;
+  border-radius: 6px !important;
+  transition: 0.5s all;
+  font-family: "regular" !important;
+  background: #f85a5a !important;
+  padding: 1px;
+  margin-top: 20px;
+} */
+
+.create-btn,
+.delete,
+.cancel {
+  width: 120px;
+  height: 46px;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+  transition: 0.3s all;
+  font-family: "regular" !important;
+  font-weight: 500;
+  padding: 1px;
+  margin-top: 20px;
+  border: none !important;
+}
+
+/* Submit (Blue) */
+.create-btn {
+  background: var(--theme-color-primary) !important;
+  /* background:#574d1fe3!important; */
+}
+
+/* Cancel (Red) */
+.delete {
+  background: #ff0000 !important;
+}
+.cancel {
+  background: #ff0000 !important;
+  margin-left: 10px !important;
+}
+/* Hover effects */
+.create-btn:hover {
+  background: var(--theme-bg-button-hover) !important;
+}
+
+.delete:hover {
+  background: #b02a37 !important;
+}
+
+.delete-icon {
+  color: red !important;
+}
