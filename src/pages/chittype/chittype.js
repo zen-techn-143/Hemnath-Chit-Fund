@@ -102,7 +102,7 @@ const ChitType = () => {
   const columns = useMemo(
     () => [
      {
-        // accessorKey: "s_no_key", // Add a unique, stable accessorKey
+        accessorKey: "s_no_key", // Add a unique, stable accessorKey
         header: t("S.No"),
         size: 50,
         enableColumnFilter: false,

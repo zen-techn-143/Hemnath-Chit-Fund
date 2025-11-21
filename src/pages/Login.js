@@ -23,11 +23,11 @@ const Login = ({ onLogin }) => {
       }
 
       const loginData = {
-        user_name: username,
+        phone: username,
         password: password,
       };
 
-      const response = await fetch(`${API_DOMAIN}/login.php`, {
+      const response = await fetch(`${API_DOMAIN}/users.php`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

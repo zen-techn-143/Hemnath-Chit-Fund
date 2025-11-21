@@ -176,7 +176,7 @@ const SideBar = ({ onLogout}) => {
                 <FiUser />
               </span>
               <span className="mx-1"style={{ paddingTop: '10px' }}
-              >{user?.user_name || "Aravind"}</span>
+              >{user?.name || "Aravind"}</span>
             </li>
             
             {/* Existing Logout Button */}

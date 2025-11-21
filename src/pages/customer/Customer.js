@@ -250,12 +250,12 @@ const Customer = () => {
         size: 70,
       },
       {
-        accessorKey: "mobile_number",
+        accessorKey: "phone",
         header: t("Mobile No"),
         size: 70,
       },
       {
-        accessorKey: "customer_details",
+        accessorKey: "address",
         header: t("Address"),
         size: 70,
       },
