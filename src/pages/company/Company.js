@@ -30,6 +30,7 @@ const Company = () => {
   // 2. Data Fetching Logic (Unchanged)
   useEffect(() => {
     const fetchData = async () => {
+      console.log("Fetching data with search text:", searchText);
       setLoading(true);
       try {
         const response = await fetch(`${API_DOMAIN}/company.php`, {
@@ -41,7 +42,7 @@ const Company = () => {
             search_text: searchText,
           }),
         });
-
+     console.log(response);
         const responseData = await response.json();
         console.log(responseData);
 
@@ -80,12 +81,12 @@ const Company = () => {
         size: 50,
       },
       {
-        accessorKey: "mobile_number",
+        accessorKey: "mobile",
         header: t("Mobile Number"), 
         size: 50,
       },
       {
-        accessorKey: "place",
+        accessorKey: "city",
         header: t("Location"), 
         size: 50,
       },

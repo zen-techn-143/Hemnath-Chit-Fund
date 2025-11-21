@@ -14,7 +14,6 @@ import { LiaEditSolid } from "react-icons/lia";
 import { MdOutlineDelete } from "react-icons/md";
 
 const User = () => {
-  // ✅ GET TRANSLATION FUNCTION
   const { t,cacheVersion} = useLanguage();
   
   const navigate = useNavigate();
@@ -122,17 +121,17 @@ const User = () => {
         Cell: ({ row }) => row.index + 1,
       },
       {
-        accessorKey: "Name",
+        accessorKey: "name",
         header: t("Name"),
         size: 50,
       },
       {
-        accessorKey: "RoleSelection",
+        accessorKey: "role",
         header: t("Share"),
         size: 50,
       },
       {
-        accessorKey: "Mobile_Number",
+        accessorKey: "phone",
         header: t("Mobile Number"),
         size: 50,
       },
