@@ -13,20 +13,25 @@ const ChitCreation = () => {
   const { t } = useLanguage();
   const location = useLocation();
   const { type, rowData } = location.state || {};
+   const user = JSON.parse(localStorage.getItem("user")) || {};
 
   const initialState =
     type === "edit"
       ? { ...rowData }
       : {
-          chit_type: "", // This will store the chit_type_id
+          chit_type: "", 
           customer_id: "",
+          chit_no: "C001", 
+          chit_due_amount: "2000", 
+          emi_method: "Weekly", 
         };
 
   const [formData, setFormData] = useState(initialState);
+  console.log(formData);
   
   // Options State
   const [customerOptions, setCustomerOptions] = useState([]);
-  const [chitTypeOptions, setChitTypeOptions] = useState([]); // New state for Chit Type
+  const [chitTypeOptions, setChitTypeOptions] = useState([]); 
   
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [error, setError] = useState("");
@@ -39,6 +44,15 @@ const ChitCreation = () => {
   };
 
   // --- HANDLERS ---
+  
+  // Generic handler for all standard text inputs
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
 
   const handleCustomerChange = (selectedOption) => {
     if (selectedOption) {
@@ -53,7 +67,6 @@ const ChitCreation = () => {
     }
   };
 
-  // New Handler for Chit Type
   const handleChitTypeChange = (selectedOption) => {
     setFormData({
       ...formData,
@@ -76,7 +89,7 @@ const ChitCreation = () => {
       if (responseData.head.code === 200) {
         const options = responseData.body.customer.map((cust) => ({
           value: cust.customer_id,
-          label: cust.name,
+          label: cust.name, 
           fullData: cust,
         }));
 
@@ -94,7 +107,6 @@ const ChitCreation = () => {
     }
   };
 
-  // Fixed and Implemented Chit Type Fetch
   const fetchChitType = async () => {
     try {
       const response = await fetch(`${API_DOMAIN}/chittype.php`, {
@@ -106,10 +118,9 @@ const ChitCreation = () => {
       const responseData = await response.json();
       
       if (responseData.head.code === 200) {
-        // Map the Chit Type response
         const options = responseData.body.chit_type.map((item) => ({
-            value: item.chit_type_id, // Storing the ID
-            label: item.chit_type,    // Displaying the Name (e.g., "savings chit")
+            value: item.chit_type_id, 
+            label: item.chit_type,
         }));
         setChitTypeOptions(options);
       }
@@ -123,9 +134,73 @@ const ChitCreation = () => {
     fetchChitType();
   }, []);
 
-  const handleSubmit = async () => {
-    // ... (Your existing submit logic)
-  };
+  // --- FINAL SUBMIT HANDLER ---
+ // --- CORRECTED SUBMIT HANDLER ---
+const handleSubmit = async () => {
+   console.log("Form Data:", formData); 
+    const selectedChitTypeOption = chitTypeOptions.find(
+        (opt) => opt.value === formData.chit_type
+    );
+   console.log("Selected Chit Type Option:", selectedChitTypeOption);
+    const chitTypeName = selectedChitTypeOption ? selectedChitTypeOption.label : '';
+
+   console.log("Chit Type Name:", chitTypeName);
+    const customerDetailsString = `${selectedCustomer?.customer_no} - ${selectedCustomer?.name}`;
+    
+    console.log("Customer Details String:", customerDetailsString);
+    const payload = {
+        customer_details: customerDetailsString, 
+        customer_id: formData.customer_id,
+        chit_type_id: formData.chit_type,
+        chit_type: chitTypeName,
+        chit_no: formData.chit_no,
+        chit_due_amount: formData.chit_due_amount,
+        emi_method: formData.emi_method,
+        current_user_id: user.user_id,
+    };
+    
+    console.log("Payload being sent:", payload); 
+
+    try {
+      console.log("Inside try block");
+      setLoading(true);
+      const response = await fetch(`${API_DOMAIN}/chit.php`, { 
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      console.log("Response:", JSON.stringify(payload));
+
+      const responseData = await response.json();
+      console.log("Response Data:", responseData);
+
+      if (responseData.head.code === 200) {
+        toast.success(responseData.head.msg, {
+          position: "top-center",
+          autoClose: 2000,
+          theme: "colored",
+        });
+        setTimeout(() => {
+          navigate("/console/master/chit"); 
+        }, 2000);
+      } else {
+        toast.error(responseData.head.msg, {
+          position: "top-center",
+          autoClose: 2000,
+          theme: "colored",
+        });
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("An error occurred during submission.", { position: "top-center" });
+    }
+    setLoading(false);
+};
+
+  const handleUpdateSubmit = async () => { /* ... existing update logic ... */ };
+
 
   return (
     <div>
@@ -135,6 +210,8 @@ const ChitCreation = () => {
             <PageNav pagetitle={t("Chit Creation")}></PageNav>
           </Col>
 
+          {/* ROW 1: DROPDOWNS and Customer Info */}
+          
           {/* COLUMN 1: CUSTOMER DROPDOWN & CARD */}
           <Col lg="4" md="12" xs="12" className="py-3">
             <div className="mb-4">
@@ -163,8 +240,7 @@ const ChitCreation = () => {
                     Customer Information
                   </h6>
                   
-                  {/* ... (Existing Card Details Code) ... */}
-                   <div className="d-flex justify-content-between mb-3">
+                  <div className="d-flex justify-content-between mb-3">
                     <span className="text-muted fw-bold" style={{ fontSize: "0.9rem" }}>Customer No:</span>
                     <span style={{ fontSize: "0.9rem" }}>{selectedCustomer.customer_no || "-"}</span>
                   </div>
@@ -190,7 +266,7 @@ const ChitCreation = () => {
             )}
           </Col>
 
-          {/* COLUMN 2: CHIT TYPE DROPDOWN (Added here) */}
+          {/* COLUMN 2: CHIT TYPE DROPDOWN */}
           <Col lg="4" md="12" xs="12" className="py-3">
              <div className="mb-4">
               <label htmlFor="chittype-select" className="mb-2">
@@ -202,7 +278,6 @@ const ChitCreation = () => {
                 isSearchable={true}
                 options={chitTypeOptions}
                 onChange={handleChitTypeChange}
-                // Find current value based on ID stored in formData.chit_type
                 value={
                   chitTypeOptions.find(
                     (opt) => opt.value === formData.chit_type
@@ -214,7 +289,11 @@ const ChitCreation = () => {
 
           <Col lg="12" md="12" xs="12" className="py-5 align-self-center">
             <div style={{ textAlign: "right" }}>
-              <ClickButton label="Submit" onClick={handleSubmit} />
+              <ClickButton 
+                label={loading ? <>{t("Submitting...")}</> : <>{t("Submit")}</>} 
+                onClick={handleSubmit} 
+                disabled={loading}
+              />
               <span className="mx-2">
                 <Delete label="Cancel" onClick={() => navigate(-1)} />
               </span>

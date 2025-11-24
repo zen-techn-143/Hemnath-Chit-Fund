@@ -34,16 +34,19 @@ const sidebarConfig = [
         icon: <MdCategory />,
       },
       {
-        path: "/console/master/chit",
-        text: "Chit",
-        icon: <MdCategory />,
+
+        path: "/console/master/customer",
+        icon: <PiUsersThreeBold />,
+        text: "Customer",
       },
     ],
   },
-  {
-    path: "/console/master/customer",
-    icon: <PiUsersThreeBold />,
-    text: "Customer",
+
+  
+ {
+    path: "/console/master/chit",
+    text: "Chit",
+    icon: <MdCategory />,
   },
 
   {
