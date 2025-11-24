@@ -33,6 +33,11 @@ const sidebarConfig = [
         text: "Chit Plan Type",
         icon: <MdCategory />,
       },
+       {
+        path: "/console/master/chit",
+        text: "Chit",
+        icon: <MdCategory />,
+      },
     ],
   },
   {
