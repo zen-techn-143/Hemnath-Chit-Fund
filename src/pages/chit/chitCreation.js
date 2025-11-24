@@ -8,123 +8,79 @@ import "react-toastify/dist/ReactToastify.css";
 import API_DOMAIN from "../../config/config";
 import Select from "react-select";
 import { useLanguage } from "../../components/LanguageContext";
+import { FaUser, FaPhone, FaMapMarkerAlt, FaHome } from "react-icons/fa";
 
 const ChitCreation = () => {
   const { t } = useLanguage();
   const location = useLocation();
   const { type, rowData } = location.state || {};
   const user = JSON.parse(localStorage.getItem("user")) || {};
+  const { chit_id, ...otherRowData } = rowData || {};
 
   const initialState =
     type === "edit"
-      ? { ...rowData }
+      ? {
+          ...otherRowData,
+          // Use the ID fields from rowData for pre-selection lookup
+          chit_type: rowData?.chit_type_id || "",
+          customer_id: rowData?.customer_id || "",
+        }
       : {
-          chit_type: "",
+          chit_type_id: "",
           customer_id: "",
-          chit_no: "C001",
-          chit_due_amount: "2000",
-          emi_method: "Weekly",
+          chit_no: "",
+          chit_due_amount: "",
+          emi_method: "",
         };
 
   const [formData, setFormData] = useState(initialState);
-  console.log(formData);
-
-  // Options State
   const [customerOptions, setCustomerOptions] = useState([]);
   const [chitTypeOptions, setChitTypeOptions] = useState([]);
 
+  // Selected Objects State (for pre-selection and customer card details)
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [selectedCustomerOption, setSelectedCustomerOption] = useState(null);
+  const [selectedChitTypeObject, setSelectedChitTypeObject] = useState(null);
+
+  // ⭐ 2. NEW STATE for the table data (single due record)
+  const [dueRecords, setDueRecords] = useState([]);
+
   const [error, setError] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // --- Handlers ---
   const redirectModal = () => {
     navigate("/console/master/chit");
   };
 
-  // --- HANDLERS ---
-
-  // Generic handler for all standard text inputs
   const handleCustomerChange = (selectedOption) => {
     if (selectedOption) {
-      setFormData({
-        ...formData,
-        customer_id: selectedOption.value,
-      });
+      setFormData({ ...formData, customer_id: selectedOption.value });
       setSelectedCustomer(selectedOption.fullData);
+      setSelectedCustomerOption(selectedOption);
     } else {
       setFormData({ ...formData, customer_id: "" });
       setSelectedCustomer(null);
+      setSelectedCustomerOption(null);
     }
   };
 
   const handleChitTypeChange = (selectedOption) => {
-    setFormData({
-      ...formData,
-      chit_type: selectedOption ? selectedOption.value : "",
-    });
-  };
-
-  // --- API CALLS ---
-
-  const fetchDataCustomer = async () => {
-    try {
-      const response = await fetch(`${API_DOMAIN}/customer.php`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ search_text: "" }),
-      });
-
-      const responseData = await response.json();
-
-      if (responseData.head.code === 200) {
-        const options = responseData.body.customer.map((cust) => ({
-          value: cust.customer_id,
-          label: cust.name,
-          fullData: cust,
-        }));
-
-        setCustomerOptions(options);
-
-        if (type === "edit" && rowData?.customer_id) {
-          const preSelected = options.find(
-            (opt) => opt.value === rowData.customer_id
-          );
-          if (preSelected) setSelectedCustomer(preSelected.fullData);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching customer data:", error.message);
+    if (selectedOption) {
+      setFormData({ ...formData, chit_type: selectedOption.value });
+      setSelectedChitTypeObject(selectedOption);
+    } else {
+      setFormData({ ...formData, chit_type: "" });
+      setSelectedChitTypeObject(null);
     }
   };
 
-  const fetchChitType = async () => {
-    try {
-      const response = await fetch(`${API_DOMAIN}/chittype.php`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ search_text: "" }),
-      });
-
-      const responseData = await response.json();
-
-      if (responseData.head.code === 200) {
-        const options = responseData.body.chit_type.map((item) => ({
-          value: item.chit_type_id,
-          label: item.chit_type,
-        }));
-        setChitTypeOptions(options);
-      }
-    } catch (error) {
-      console.error("Error fetching chit type data:", error.message);
-    }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
-
-  useEffect(() => {
-    fetchDataCustomer();
-    fetchChitType();
-  }, []);
 
   const handleSubmit = async () => {
     console.log("Form Data:", formData);
@@ -193,25 +149,121 @@ const ChitCreation = () => {
     setLoading(false);
   };
 
-  const handleUpdateSubmit = async () => {
-    /* ... existing update logic ... */
+  // --- Fetch Data Functions ---
+
+  const fetchDataCustomer = async () => {
+    try {
+      const response = await fetch(`${API_DOMAIN}/customer.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ search_text: "" }),
+      });
+
+      const responseData = await response.json();
+
+      if (responseData.head.code === 200) {
+        const options = responseData.body.customer.map((cust) => ({
+          value: cust.customer_id,
+          label: cust.name,
+          fullData: cust,
+        }));
+
+        setCustomerOptions(options);
+
+        // Pre-select logic
+        if (type === "edit" && rowData?.customer_id) {
+          const preSelected = options.find(
+            (opt) => opt.value === rowData.customer_id
+          );
+          if (preSelected) {
+            setSelectedCustomer(preSelected.fullData); // For Customer Card
+            setSelectedCustomerOption(preSelected); // For Select Component
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching customer data:", error.message);
+    }
   };
+
+  const fetchChitType = async () => {
+    try {
+      const response = await fetch(`${API_DOMAIN}/chittype.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ search_text: "" }),
+      });
+
+      const responseData = await response.json();
+
+      if (responseData.head.code === 200) {
+        const options = responseData.body.chit_type.map((item) => ({
+          value: item.chit_type_id,
+          label: item.chit_type,
+        }));
+
+        setChitTypeOptions(options);
+
+        // Pre-select logic
+        if (type === "edit" && rowData?.chit_type_id) {
+          const preSelectedChitType = options.find(
+            (opt) => opt.value === rowData.chit_type_id
+          );
+          if (preSelectedChitType) {
+            setSelectedChitTypeObject(preSelectedChitType);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching chit type data:", error.message);
+    }
+  };
+
+  // --- useEffect Hooks ---
+
+  useEffect(() => {
+    fetchDataCustomer();
+    fetchChitType();
+  }, []);
+
+  useEffect(() => {
+    if (
+      type === "edit" &&
+      rowData &&
+      rowData.chit_id &&
+      rowData.due_amt !== undefined
+    ) {
+      const singleDueRecord = {
+        due_date: rowData.due_date,
+        due_amt: rowData.due_amt,
+        balance_amt: rowData.balance_amt,
+        payment_method: rowData.payment_method,
+        payment_status: rowData.payment_status,
+      };
+
+      setDueRecords([singleDueRecord]);
+    } else {
+      setDueRecords([]);
+    }
+  }, [type, rowData]);
 
   return (
     <div>
       <Container>
         <Row className="regular">
           <Col lg="12" md="12" xs="12" className="py-3">
-            <PageNav pagetitle={t("Chit Creation")}></PageNav>
+           <PageNav 
+        pagetitle={'Chit Management'}
+        
+      />
+        
           </Col>
 
-          {/* ROW 1: DROPDOWNS and Customer Info */}
-
-          {/* COLUMN 1: CUSTOMER DROPDOWN & CARD */}
+          {/* COLUMN 1: CUSTOMER DROPDOWN */}
           <Col lg="4" md="12" xs="12" className="py-3">
             <div className="mb-4">
               <label htmlFor="customer-select" className="mb-2">
-                {t("Customer")}
+                {t("Customer Name")}
               </label>
               <Select
                 id="customer-select"
@@ -219,15 +271,9 @@ const ChitCreation = () => {
                 isSearchable={true}
                 options={customerOptions}
                 onChange={handleCustomerChange}
-                value={
-                  customerOptions.find(
-                    (opt) => opt.value === formData.customer_id
-                  ) || null
-                }
+                value={selectedCustomerOption}
               />
             </div>
-
-            {/* CUSTOMER DETAILS CARD */}
             {selectedCustomer && (
               <Card
                 className="shadow border-0"
@@ -319,15 +365,152 @@ const ChitCreation = () => {
                 isSearchable={true}
                 options={chitTypeOptions}
                 onChange={handleChitTypeChange}
-                value={
-                  chitTypeOptions.find(
-                    (opt) => opt.value === formData.chit_type
-                  ) || null
-                }
+                value={selectedChitTypeObject} // ⭐ Use the dedicated option state
               />
             </div>
+            {selectedCustomer && (
+              <Card
+                className="shadow border-0"
+                style={{ borderRadius: "10px" }}
+              >
+                <Card.Body className="p-4">
+                  <h6
+                    className="text-center mb-4"
+                    style={{ fontWeight: "bold", color: "#333" }}
+                  >
+                    Customer Information
+                  </h6>
+
+                  <div className="d-flex justify-content-between mb-3">
+                    <span
+                      className="text-muted fw-bold"
+                      style={{ fontSize: "0.9rem" }}
+                    >
+                      Customer No:
+                    </span>
+                    <span style={{ fontSize: "0.9rem" }}>
+                      {selectedCustomer.customer_no || "-"}
+                    </span>
+                  </div>
+                  <div className="d-flex justify-content-between mb-3">
+                    <span
+                      className="text-muted fw-bold"
+                      style={{ fontSize: "0.9rem" }}
+                    >
+                      Name:
+                    </span>
+                    <span style={{ fontSize: "0.9rem" }}>
+                      {selectedCustomer.name}
+                    </span>
+                  </div>
+                  <div className="d-flex justify-content-between mb-3">
+                    <span
+                      className="text-muted fw-bold"
+                      style={{ fontSize: "0.9rem" }}
+                    >
+                      Address:
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "0.9rem",
+                        textAlign: "right",
+                        maxWidth: "60%",
+                      }}
+                    >
+                      {selectedCustomer.address}
+                    </span>
+                  </div>
+                  <div className="d-flex justify-content-between mb-3">
+                    <span
+                      className="text-muted fw-bold"
+                      style={{ fontSize: "0.9rem" }}
+                    >
+                      Place:
+                    </span>
+                    <span style={{ fontSize: "0.9rem" }}>
+                      {selectedCustomer.place}
+                    </span>
+                  </div>
+                  <div className="d-flex justify-content-between">
+                    <span
+                      className="text-muted fw-bold"
+                      style={{ fontSize: "0.9rem" }}
+                    >
+                      Mobile Number:
+                    </span>
+                    <span style={{ fontSize: "0.9rem" }}>
+                      {selectedCustomer.phone}
+                    </span>
+                  </div>
+                </Card.Body>
+              </Card>
+            )}
           </Col>
 
+          {/* ⭐ 4. DUE PAYMENT TABLE (Only visible in edit mode with data) */}
+          {type === "edit" && dueRecords.length > 0 && (
+            <Col lg={12} md={12} xs={12} className="mt-4">
+              <Card className="shadow-sm">
+                <Card.Header as="h5" className="bg-light">
+                  {t("Current Due Payment Details")}
+                </Card.Header>
+                <Card.Body className="p-0">
+                  <div className="table-responsive">
+                    <table className="table table-striped table-hover mb-0">
+                      <thead className="thead-dark">
+                        <tr>
+                          <th>{t("Due Date")}</th>
+                          <th>{t("Due Amount")}</th>
+                          <th>{t("Balance Amount")}</th>
+                          <th>{t("Payment Method")}</th>
+                          <th>{t("Status")}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {/* Map the single due record */}
+                        {dueRecords.map((record, index) => (
+                          <tr key={index}>
+                            <td>
+                              {/* Format date for cleaner display */}
+                              {record.due_date
+                                ? new Date(record.due_date).toLocaleDateString()
+                                : "N/A"}
+                            </td>
+                            <td>
+                              {record.due_amt ? `₹${record.due_amt}` : "N/A"}
+                            </td>
+                            <td>
+                              {record.balance_amt
+                                ? `₹${record.balance_amt}`
+                                : "N/A"}
+                            </td>
+                            <td>{record.payment_method || t("N/A")}</td>
+                            <td>
+                              <span
+                                className={`badge bg-${
+                                  record.payment_status === "pending"
+                                    ? "warning"
+                                    : record.payment_status === "paid"
+                                    ? "success"
+                                    : "secondary"
+                                }`}
+                              >
+                                {record.payment_status || t("N/A")}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          )}
+          {/* --- END DUE PAYMENT TABLE --- */}
+
+          {/* SUBMIT/CANCEL BUTTONS */}
+          
           <Col lg="12" md="12" xs="12" className="py-5 align-self-center">
             <div style={{ textAlign: "right", paddingRight: "5px" }}>
               {type === "view" ? (
@@ -393,34 +576,38 @@ const ChitCreation = () => {
             </div>
           </Col>
         </Row>
+
+        {/* Error Alert */}
         {error && (
           <Alert variant="danger" className="error-alert">
             {error}
           </Alert>
         )}
+
+        {/* Success Modal */}
+        <Modal
+          show={showSuccessModal}
+          onHide={() => setShowSuccessModal(false)}
+          centered
+        >
+          <Modal.Body className="text-center">
+            <img
+              src={require("../../components/sidebar/images/output-onlinegiftools.gif")}
+              alt="Success GIF"
+            />
+            <p>{t("Chit saved successfully!")}</p>
+          </Modal.Body>
+          <Modal.Footer>
+            <ClickButton
+              variant="secondary"
+              label={<> {t("Close")}</>}
+              onClick={() => redirectModal()}
+            >
+              {t("Close")}
+            </ClickButton>
+          </Modal.Footer>
+        </Modal>
       </Container>
-      <Modal
-        show={showSuccessModal}
-        onHide={() => setShowSuccessModal(false)}
-        centered
-      >
-        <Modal.Body className="text-center">
-          <img
-            src={require("../../components/sidebar/images/output-onlinegiftools.gif")}
-            alt="Success GIF"
-          />
-          <p>{t("User saved successfully!")}</p>
-        </Modal.Body>
-        <Modal.Footer>
-          <ClickButton
-            variant="secondary"
-            label={<> Close</>}
-            onClick={() => redirectModal()}
-          >
-            {t("Close")}
-          </ClickButton>
-        </Modal.Footer>
-      </Modal>
     </div>
   );
 };

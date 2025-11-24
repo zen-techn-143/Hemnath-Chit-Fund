@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import API_DOMAIN from "../../config/config";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import { useLanguage } from "../../components/LanguageContext";
-
+import { ToastContainer, toast } from "react-toastify";
 // 💡 NEW IMPORTS FOR MATERIAL REACT TABLE
 import { MaterialReactTable } from "material-react-table";
 import { Box, Tooltip, IconButton } from "@mui/material";
@@ -20,14 +20,46 @@ const Chit = () => {
   const [loading, setLoading] = useState(false);
 
   // 1. Handlers for Edit and Delete Actions
-  const handleEditClick = (rowData) => {
-    navigate("/console/master/chit/create", {
-      state: {
-        type: "edit",
-        rowData: rowData,
-      },
-    });
-  };
+  const handleEditClick = async (rowData) => { 
+    console.log("Edit Group ID:", rowData.chit_id);
+    const chitId = rowData.chit_id; 
+    setLoading(true); 
+
+    try {
+      console.log("Inside try block");
+
+      const requestPayload = { chit_id: chitId };
+      console.log("Edit Load Payload:", requestPayload);
+
+       const response = await fetch(`${API_DOMAIN}/chit.php`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestPayload), 
+        });
+        console.log("Response:", JSON.stringify(requestPayload));
+
+        const responseData = await response.json();
+        console.log("Response Data:", responseData);
+
+        setLoading(false);
+        if (responseData.head.code === 200 && responseData.data.chit && responseData.data.chit.length > 0) {
+            const detailedRowData = responseData.data.chit[0];
+            console.log("Detailed Row Data:", detailedRowData);
+            navigate("/console/master/chit/create", {
+                state: {
+                    type: "edit",
+                    rowData: detailedRowData, 
+                },
+            });
+        } else {
+            console.error("Failed to fetch detailed chit data:", responseData.head.msg);
+           
+        }
+    } catch (error) {
+        setLoading(false);
+        console.error("Error during edit fetch:", error);
+    }
+};
   const handleDeleteClick = async (chitId) => {
     console.log("Delete Group ID:", chitId);
     setLoading(true);
