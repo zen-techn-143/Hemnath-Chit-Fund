@@ -189,7 +189,7 @@ const ChitTypeCreation = () => {
           {type === "view" ? (
             <ClickButton
               label={<>{t("Back")}</>} // 4. Apply t() (Capitalized for key consistency)
-              onClick={() => navigate("/console/user")}
+              onClick={() => navigate("/console/master/chittype")}
             ></ClickButton>
           ) : (
             <>
