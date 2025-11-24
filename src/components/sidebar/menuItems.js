@@ -34,6 +34,7 @@ const sidebarConfig = [
         icon: <MdCategory />,
       },
       {
+<<<<<<< HEAD
         path: "/console/master/customer",
         icon: <PiUsersThreeBold />,
         text: "Customer",
@@ -45,6 +46,18 @@ const sidebarConfig = [
     path: "/console/master/chit",
     text: "Chit",
     icon: <MdCategory />,
+=======
+        path: "/console/master/chit",
+        text: "Chit",
+        icon: <MdCategory />,
+      },
+    ],
+  },
+  {
+    path: "/console/master/customer",
+    icon: <PiUsersThreeBold />,
+    text: "Customer",
+>>>>>>> 1cf53e3cf3fa6fc9e72d28a0a742cc92783a2335
   },
 
   {
@@ -57,9 +70,9 @@ const sidebarConfig = [
     icon: <BsBarChartFill />,
     subMenu: [
       {
-        path: "/console/report/balancesheet",
-        text: "Balancesheet DayBook",
-        icon: <MdOutlineDashboard />,
+        path: "/console/report/customerhistory",
+        text: "CustomerHistory",
+        icon: <FaMoneyBillTrendUp />,
       },
     ],
   },
