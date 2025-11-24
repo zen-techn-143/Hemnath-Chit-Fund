@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react"; // ADD useMemo
+import React, { useState, useEffect, useMemo } from "react";
 import { Container, Col, Row } from "react-bootstrap";
 import { ClickButton } from "../../components/ClickButton";
 import { useNavigate } from "react-router-dom";
@@ -13,8 +13,7 @@ import { LiaEditSolid } from "react-icons/lia";
 import { MdOutlineDelete } from "react-icons/md";
 
 const Chit = () => {
-  const { t,cacheVersion} = useLanguage();
-  
+  const { t, cacheVersion } = useLanguage();  
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
   const [chitData, setChitData] = useState([]);
@@ -46,7 +45,6 @@ const Chit = () => {
       if (responseData.head.code === 200) {
         navigate("/console/master/chittype");
         window.location.reload();
-        //setLoading(false);
       } else {
         console.log(responseData.head.msg);
         setLoading(false);
@@ -60,13 +58,13 @@ const Chit = () => {
   const user = JSON.parse(localStorage.getItem("user")) || {};
   const isAdmin = user.role === "Admin";
 
-  // 2. Data Fetching Logic (Unchanged)
+  // 2. Corrected Data Fetching Logic
   useEffect(() => {
      const fetchData = async () => {
        console.log("Fetching data with search text:", searchText);
        setLoading(true);
        try {
-         const response = await fetch(`${API_DOMAIN}/chittype.php`, {
+         const response = await fetch(`${API_DOMAIN}/chit.php`, {
            method: "POST",
            headers: {
              "Content-Type": "application/json",
@@ -75,19 +73,19 @@ const Chit = () => {
              search_text: searchText,
            }),
          });
-      console.log(response);
          const responseData = await response.json();
          console.log(responseData);
  
          if (responseData.head.code === 200) {
            setChitData(
-             Array.isArray(responseData.body.chit_type)
-               ? responseData.body.chit_type
-               : [responseData.body.chit_type]
+             Array.isArray(responseData.data.all)
+               ? responseData.data.all
+               : [] 
            );
            setLoading(false);
          } else {
-           throw new Error(responseData.head.msg);
+           setChitData([]);
+           setLoading(false);
          }
        } catch (error) {
          setLoading(false);
@@ -98,20 +96,30 @@ const Chit = () => {
      fetchData();
    }, [searchText]);
   
-  // 3. Define Material React Table Columns (Using t() for headers and tooltips)
+  // 3. Define Material React Table Columns (Added Chit No and Due Amount)
   const columns = useMemo(
     () => [
      {
-        accessorKey: "s_no_key", // Add a unique, stable accessorKey
+        accessorKey: "s_no_key", 
         header: t("S.No"),
         size: 50,
         enableColumnFilter: false,
         Cell: ({ row }) => row.index + 1,
       },
       {
+        accessorKey: "customer_no",
+        header: t("Customer No"),
+        size: 100,
+      },
+       {
+        accessorKey: "name",
+        header: t("Customer Name"),
+        size: 150,
+      },
+      {
         accessorKey: "chit_type",
         header: t("Chit Type"),
-        size: 50,
+        size: 150,
       },
       
       {
@@ -141,7 +149,8 @@ const Chit = () => {
             <Tooltip title={t("Delete")}>
               <IconButton
                 onClick={() =>
-                  handleDeleteClick(row.original.chit_type_id)
+                  // NOTE: Changed to chit_id as it is the unique identifier for the chit
+                  handleDeleteClick(row.original.chit_id) 
                 }
                 sx={{ color: "#dc3545", padding: 0 }}
               >
@@ -152,7 +161,7 @@ const Chit = () => {
         ),
       },
     ],
-    [t,cacheVersion] 
+    [t, cacheVersion] 
   );
 
   // 4. Update JSX to render MaterialReactTable (Using t() for display strings)
