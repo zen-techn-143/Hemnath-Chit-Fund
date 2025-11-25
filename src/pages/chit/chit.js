@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Container, Col, Row } from "react-bootstrap";
+import { Container, Col, Row, Modal, Form, Button } from "react-bootstrap";
 import { ClickButton } from "../../components/ClickButton";
 import { useNavigate } from "react-router-dom";
 import API_DOMAIN from "../../config/config";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import { useLanguage } from "../../components/LanguageContext";
 import { ToastContainer, toast } from "react-toastify";
-// 💡 NEW IMPORTS FOR MATERIAL REACT TABLE
 import { MaterialReactTable } from "material-react-table";
 import { Box, Tooltip, IconButton } from "@mui/material";
 import { LiaEditSolid } from "react-icons/lia";
@@ -15,40 +14,77 @@ import { MdOutlineDelete } from "react-icons/md";
 const Chit = () => {
   const { t, cacheVersion } = useLanguage();
   const navigate = useNavigate();
+
   const [searchText, setSearchText] = useState("");
   const [chitData, setChitData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 1. Handlers for Edit and Delete Actions
+  const [showCloseModal, setShowCloseModal] = useState(false);
+  const [selectedChitId, setSelectedChitId] = useState(null);
+  const [closeReason, setCloseReason] = useState("");
+
+  const user = JSON.parse(localStorage.getItem("user")) || {};
+  const isAdmin = user.role === "Admin";
+
+  const fetchData = async () => {
+    console.log("Fetching data with search text:", searchText);
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_DOMAIN}/chit.php`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          search_text: searchText,
+        }),
+      });
+
+      const responseData = await response.json();
+      console.log("Fetch Response:", responseData);
+
+      if (responseData.head.code === 200) {
+        setChitData(
+          Array.isArray(responseData.data.all) ? responseData.data.all : []
+        );
+      } else {
+        setChitData([]);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [searchText]);
+
   const handleEditClick = async (rowData) => {
-    console.log("Edit Group ID:", rowData.chit_id);
+    console.log("Edit Chit ID:", rowData.chit_id);
+
     const chitId = rowData.chit_id;
     setLoading(true);
 
     try {
-      console.log("Inside try block");
-
-      const requestPayload = { chit_id: chitId };
-      console.log("Edit Load Payload:", requestPayload);
-
       const response = await fetch(`${API_DOMAIN}/chit.php`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestPayload),
+        body: JSON.stringify({ chit_id: chitId }),
       });
-      console.log("Response:", JSON.stringify(requestPayload));
 
       const responseData = await response.json();
-      console.log("Response Data:", responseData);
-
       setLoading(false);
+
       if (
         responseData.head.code === 200 &&
         responseData.data.chit &&
         responseData.data.chit.length > 0
       ) {
         const detailedRowData = responseData.data.chit[0];
-        console.log("Detailed Row Data:", detailedRowData);
+
         navigate("/console/master/chit/create", {
           state: {
             type: "edit",
@@ -56,91 +92,60 @@ const Chit = () => {
           },
         });
       } else {
-        console.error(
-          "Failed to fetch detailed chit data:",
-          responseData.head.msg
-        );
+        console.error("Failed to fetch chit details");
       }
     } catch (error) {
       setLoading(false);
-      console.error("Error during edit fetch:", error);
+      console.error("Error editing chit:", error);
     }
   };
-  const handleDeleteClick = async (chitId) => {
-    console.log("Delete Group ID:", chitId);
+
+  const handleCloseClick = (chitId) => {
+    setSelectedChitId(chitId);
+    setCloseReason("");
+    setShowCloseModal(true);
+  };
+
+  const handleSubmitClose = async () => {
+    if (!closeReason.trim()) {
+      toast.error(t("Please enter close reason"));
+      return;
+    }
+
     setLoading(true);
+
     try {
-      const response = await fetch(`${API_DOMAIN}/chittype.php`, {
+      const response = await fetch(`${API_DOMAIN}/chit.php`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          delete_chit_type_id: chitId,
+          chit_close_id: selectedChitId,
+          close_reason: closeReason,
         }),
       });
+
       const responseData = await response.json();
+
       if (responseData.head.code === 200) {
-        navigate("/console/master/chittype");
-        window.location.reload();
+        toast.success(responseData.head.msg || t("Chit closed successfully"));
+        setShowCloseModal(false);
+        fetchData(); // REFRESH TABLE
       } else {
-        console.log(responseData.head.msg);
-        setLoading(false);
+        toast.error(responseData.head.msg || t("Failed to close chit"));
       }
     } catch (error) {
-      console.error("Error:", error);
-      setLoading(true);
+      toast.error(t("An error occurred while closing the chit"));
+    } finally {
+      setLoading(false);
     }
   };
 
-  const user = JSON.parse(localStorage.getItem("user")) || {};
-  const isAdmin = user.role === "Admin";
-
-  // 2. Corrected Data Fetching Logic
-  useEffect(() => {
-    const fetchData = async () => {
-      console.log("Fetching data with search text:", searchText);
-      setLoading(true);
-      try {
-        const response = await fetch(`${API_DOMAIN}/chit.php`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            search_text: searchText,
-          }),
-        });
-        const responseData = await response.json();
-        console.log(responseData);
-
-        if (responseData.head.code === 200) {
-          setChitData(
-            Array.isArray(responseData.data.all) ? responseData.data.all : []
-          );
-          setLoading(false);
-        } else {
-          setChitData([]);
-          setLoading(false);
-        }
-      } catch (error) {
-        setLoading(false);
-        console.error("Error fetching data:", error.message);
-      }
-    };
-
-    fetchData();
-  }, [searchText]);
-
-  // 3. Define Material React Table Columns (Added Chit No and Due Amount)
   const columns = useMemo(
     () => [
       {
-        accessorKey: "s_no_key",
         header: t("S.No"),
-        size: 50,
-        enableColumnFilter: false,
         Cell: ({ row }) => row.index + 1,
+        size: 50,
       },
       {
         accessorKey: "customer_no",
@@ -162,16 +167,10 @@ const Chit = () => {
         id: "action",
         header: t("Action"),
         size: 100,
-        enableColumnFilter: false,
-        enableColumnOrdering: false,
         enableSorting: false,
+        enableColumnFilter: false,
         Cell: ({ row }) => (
-          <Box
-            sx={{
-              justifyContent: "center",
-              gap: "2 rem",
-            }}
-          >
+          <Box sx={{ display: "flex", gap: "10px" }}>
             <Tooltip title={t("Edit")}>
               <IconButton
                 onClick={() => handleEditClick(row.original)}
@@ -181,12 +180,9 @@ const Chit = () => {
               </IconButton>
             </Tooltip>
 
-            <Tooltip title={t("Delete")}>
+            <Tooltip title={t("Close")}>
               <IconButton
-                onClick={() =>
-                  // NOTE: Changed to chit_id as it is the unique identifier for the chit
-                  handleDeleteClick(row.original.chit_id)
-                }
+                onClick={() => handleCloseClick(row.original.chit_id)}
                 sx={{ color: "#dc3545", padding: 0 }}
               >
                 <MdOutlineDelete />
@@ -199,17 +195,17 @@ const Chit = () => {
     [t, cacheVersion]
   );
 
-  // 4. Update JSX to render MaterialReactTable (Using t() for display strings)
   return (
     <div>
       <Container fluid>
         <Row>
-          <Col lg="7" md="6" xs="6">
+          <Col lg="7">
             <div className="page-nav py-3">
-              <span class="nav-list">{t("Chit")}</span>
+              <span className="nav-list">{t("Chit")}</span>
             </div>
           </Col>
-          <Col lg="5" md="6" xs="6" className="align-self-center text-end">
+
+          <Col lg="5" className="text-end align-self-center">
             {isAdmin && (
               <ClickButton
                 label={<>{t("Add Chit")}</>}
@@ -217,47 +213,72 @@ const Chit = () => {
               ></ClickButton>
             )}
           </Col>
-          {/* ... (Search Bar remains the same) ... */}
-          <Col lg={9} md={12} xs={12} className="py-2"></Col>
 
-          {/* 5. Replace TableUI with MaterialReactTable */}
-          {loading ? (
-            <LoadingOverlay isLoading={loading} />
-          ) : (
-            <>
-              <Col lg="12" md="12" xs="12" className="px-0">
-                <div className="py-1">
-                  <MaterialReactTable
-                    columns={columns}
-                    data={chitData}
-                    enableColumnActions={false}
-                    enableColumnFilters={false}
-                    enablePagination={true}
-                    enableSorting={true}
-                    initialState={{ density: "compact" }}
-                    muiTablePaperProps={{
-                      sx: {
-                        borderRadius: "5px",
-                        // Keep the existing style property for the table container
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                        //textAlign: "center",
-                      },
-                    }}
-                    muiTableHeadCellProps={{
-                      sx: {
-                        fontWeight: "bold",
-                        backgroundColor: "#000000ff",
-                        color: "white", // Light gray header background
-                      },
-                    }}
-                  />
-                </div>
-              </Col>
-            </>
-          )}
-          <Col lg="4"></Col>
+          <Col lg={12} className="px-0 py-2">
+            {loading ? (
+              <LoadingOverlay isLoading={loading} />
+            ) : (
+              <MaterialReactTable
+                columns={columns}
+                data={chitData}
+                enablePagination
+                enableSorting
+                enableColumnFilters={false}
+                enableColumnActions={false}
+                initialState={{ density: "compact" }}
+                muiTablePaperProps={{
+                  sx: {
+                    borderRadius: "5px",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                  },
+                }}
+                muiTableHeadCellProps={{
+                  sx: {
+                    fontWeight: "bold",
+                    backgroundColor: "#000000ff",
+                    color: "white",
+                  },
+                }}
+              />
+            )}
+          </Col>
         </Row>
       </Container>
+
+      {/* CLOSE CHIT MODAL */}
+      <Modal
+        show={showCloseModal}
+        onHide={() => setShowCloseModal(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>{t("Close Chit")}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group>
+            <Form.Label>{t("Close Reason")}</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={closeReason}
+              onChange={(e) => setCloseReason(e.target.value)}
+              placeholder={t("Enter the reason for closing the chit")}
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowCloseModal(false)}>
+            {t("Cancel")}
+          </Button>
+          <Button
+            variant="danger"
+            onClick={handleSubmitClose}
+            disabled={loading}
+          >
+            {loading ? t("Closing...") : t("Close Chit")}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
