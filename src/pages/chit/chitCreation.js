@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Col, Container, Row, Alert, Modal, Card } from "react-bootstrap";
+import {
+  Col,
+  Container,
+  Row,
+  Alert,
+  Modal,
+  Card,
+  Form,
+  Button,
+} from "react-bootstrap";
 import { ClickButton, Delete } from "../../components/ClickButton";
 import PageNav from "../../components/PageNav";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -42,7 +51,21 @@ const ChitCreation = () => {
   const [error, setError] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedDueRecord, setSelectedDueRecord] = useState(null);
+  const [paymentFormData, setPaymentFormData] = useState({
+    payment_method: "",
+    paid_amount: "",
+    payment_date: "",
+  });
   const navigate = useNavigate();
+
+  const paymentMethods = [
+    { value: "Cash", label: "Cash" },
+    { value: "Bank Transfer", label: "Bank Transfer" },
+    { value: "UPI", label: "UPI" },
+    // Add more options as needed
+  ];
 
   // --- Handlers ---
   const redirectModal = () => {
@@ -76,6 +99,84 @@ const ChitCreation = () => {
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
+  const handlePaymentChange = (e) => {
+    const { name, value } = e.target;
+    setPaymentFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleOpenPayment = (record) => {
+    setSelectedDueRecord(record);
+    setPaymentFormData({
+      payment_method: "Cash",
+      paid_amount: record.due_amt.toString(),
+      payment_date: new Date().toISOString().split("T")[0],
+    });
+    setShowPaymentModal(true);
+  };
+
+  const handlePaymentSubmit = async () => {
+    if (
+      !selectedDueRecord ||
+      !paymentFormData.payment_method ||
+      !paymentFormData.paid_amount ||
+      !paymentFormData.payment_date
+    ) {
+      toast.error("Please fill all fields");
+      return;
+    }
+    const payload = {
+      chit_id: selectedDueRecord.chit_id,
+      due_no: selectedDueRecord.due_no,
+      payment_method: paymentFormData.payment_method,
+      current_user_id: user.user_id,
+      paid_amount: parseFloat(paymentFormData.paid_amount),
+      payment_date: paymentFormData.payment_date,
+    };
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_DOMAIN}/chit.php`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const text = await response.text();
+      console.log("Raw response:", text); // For debugging; remove in production if desired
+      let resData;
+      try {
+        let cleanText = text.trim();
+        // Hack to fix malformed response with trailing empty array
+        if (cleanText.endsWith("[]")) {
+          cleanText = cleanText.slice(0, -2).trim();
+        }
+        resData = JSON.parse(cleanText);
+      } catch (parseError) {
+        console.error("Invalid JSON response:", text);
+        throw new Error("Invalid response format from server");
+      }
+
+      console.log("Payment Response:", resData);
+
+      if (resData.status === "success") {
+        toast.success(resData.message || "Payment successful");
+        setShowPaymentModal(false);
+        fetchDueRecords(selectedDueRecord.chit_id);
+      } else {
+        toast.error(resData.message || "Payment failed");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error(error.message || "An error occurred during payment.");
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleSubmit = async () => {
     console.log("Form Data:", formData);
     const selectedChitTypeOption = chitTypeOptions.find(
@@ -113,7 +214,7 @@ const ChitCreation = () => {
         },
         body: JSON.stringify(payload),
       });
-      console.log("Response:", JSON.stringify(payload));
+      console.log("Response:", response);
 
       const responseData = await response.json();
       console.log("Response Data:", responseData);
@@ -213,6 +314,27 @@ const ChitCreation = () => {
     }
   };
 
+  const fetchDueRecords = async (chitId) => {
+    try {
+      const response = await fetch(`${API_DOMAIN}/chit.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chit_id: chitId }),
+      });
+
+      const responseData = await response.json();
+
+      if (responseData.head.code === 200) {
+        setDueRecords(responseData.data.chit || []);
+      } else {
+        setDueRecords([]);
+      }
+    } catch (error) {
+      console.error("Error fetching due records:", error.message);
+      setDueRecords([]);
+    }
+  };
+
   // --- useEffect Hooks ---
 
   useEffect(() => {
@@ -221,21 +343,8 @@ const ChitCreation = () => {
   }, []);
 
   useEffect(() => {
-    if (
-      type === "edit" &&
-      rowData &&
-      rowData.chit_id &&
-      rowData.due_amt !== undefined
-    ) {
-      const singleDueRecord = {
-        due_date: rowData.due_date,
-        due_amt: rowData.due_amt,
-        balance_amt: rowData.balance_amt,
-        payment_method: rowData.payment_method,
-        payment_status: rowData.payment_status,
-      };
-
-      setDueRecords([singleDueRecord]);
+    if (type === "edit" && rowData?.chit_id) {
+      fetchDueRecords(rowData.chit_id);
     } else {
       setDueRecords([]);
     }
@@ -358,83 +467,7 @@ const ChitCreation = () => {
                 value={selectedChitTypeObject}
               />
             </div>
-            {selectedCustomer && (
-              <Card
-                className="shadow border-0"
-                style={{ borderRadius: "10px" }}
-              >
-                <Card.Body className="p-4">
-                  <h6
-                    className="text-center mb-4"
-                    style={{ fontWeight: "bold", color: "#333" }}
-                  >
-                    Customer Information
-                  </h6>
-
-                  <div className="d-flex justify-content-between mb-3">
-                    <span
-                      className="text-muted fw-bold"
-                      style={{ fontSize: "0.9rem" }}
-                    >
-                      Customer No:
-                    </span>
-                    <span style={{ fontSize: "0.9rem" }}>
-                      {selectedCustomer.customer_no || "-"}
-                    </span>
-                  </div>
-                  <div className="d-flex justify-content-between mb-3">
-                    <span
-                      className="text-muted fw-bold"
-                      style={{ fontSize: "0.9rem" }}
-                    >
-                      Name:
-                    </span>
-                    <span style={{ fontSize: "0.9rem" }}>
-                      {selectedCustomer.name}
-                    </span>
-                  </div>
-                  <div className="d-flex justify-content-between mb-3">
-                    <span
-                      className="text-muted fw-bold"
-                      style={{ fontSize: "0.9rem" }}
-                    >
-                      Address:
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "0.9rem",
-                        textAlign: "right",
-                        maxWidth: "60%",
-                      }}
-                    >
-                      {selectedCustomer.address}
-                    </span>
-                  </div>
-                  <div className="d-flex justify-content-between mb-3">
-                    <span
-                      className="text-muted fw-bold"
-                      style={{ fontSize: "0.9rem" }}
-                    >
-                      Place:
-                    </span>
-                    <span style={{ fontSize: "0.9rem" }}>
-                      {selectedCustomer.place}
-                    </span>
-                  </div>
-                  <div className="d-flex justify-content-between">
-                    <span
-                      className="text-muted fw-bold"
-                      style={{ fontSize: "0.9rem" }}
-                    >
-                      Mobile Number:
-                    </span>
-                    <span style={{ fontSize: "0.9rem" }}>
-                      {selectedCustomer.phone}
-                    </span>
-                  </div>
-                </Card.Body>
-              </Card>
-            )}
+            {/* Removed duplicate customer card; add chit type info if needed */}
           </Col>
 
           {/* ⭐ 4. DUE PAYMENT TABLE (Only visible in edit mode with data) */}
@@ -474,17 +507,19 @@ const ChitCreation = () => {
                             </td>
                             <td>{record.payment_method || t("N/A")}</td>
                             <td>
-                              <span
-                                className={`badge bg-${
-                                  record.payment_status === "pending"
-                                    ? "warning"
-                                    : record.payment_status === "paid"
-                                    ? "success"
-                                    : "secondary"
-                                }`}
-                              >
-                                {record.payment_status || t("N/A")}
-                              </span>
+                              {record.payment_status === "paid" ? (
+                                <span className="badge bg-success">
+                                  {record.payment_status || t("N/A")}
+                                </span>
+                              ) : (
+                                <span
+                                  className="badge bg-warning"
+                                  style={{ cursor: "pointer" }}
+                                  onClick={() => handleOpenPayment(record)}
+                                >
+                                  {record.payment_status || t("N/A")}
+                                </span>
+                              )}
                             </td>
                           </tr>
                         ))}
@@ -590,6 +625,116 @@ const ChitCreation = () => {
             >
               {t("Close")}
             </ClickButton>
+          </Modal.Footer>
+        </Modal>
+
+        {/* Payment Modal */}
+        {/* Payment Modal */}
+        <Modal
+          show={showPaymentModal}
+          onHide={() => setShowPaymentModal(false)}
+          centered
+          size="md"
+          className="payment-modal"
+        >
+          <Modal.Header
+            closeButton
+            className="bg-primary text-white border-0"
+            style={{ borderRadius: "10px 10px 0 0" }}
+          >
+            <Modal.Title className="d-flex align-items-center">
+              <i className="fas fa-credit-card me-2"></i>
+              Make Payment
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body className="p-4">
+            <Card className="border-0 shadow-sm">
+              <Card.Body className="p-0">
+                <div className="text-center mb-3">
+                  <h6 className="text-muted">
+                    Due Amount: ₹{selectedDueRecord?.due_amt || 0}
+                  </h6>
+                </div>
+                <Form>
+                  <Form.Group className="mb-3">
+                    <Form.Label className="fw-bold text-dark">
+                      <i className="fas fa-wallet me-1"></i>Payment Method
+                    </Form.Label>
+                    <Form.Select
+                      name="payment_method"
+                      value={paymentFormData.payment_method}
+                      onChange={handlePaymentChange}
+                      className="rounded-3 shadow-sm"
+                      style={{ borderColor: "#e9ecef" }}
+                    >
+                      <option value="">Select Method</option>
+                      {paymentMethods.map((method) => (
+                        <option key={method.value} value={method.value}>
+                          {method.label}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label className="fw-bold text-dark">
+                      <i className="fas fa-rupee-sign me-1"></i>Paid Amount
+                    </Form.Label>
+                    <Form.Control
+                      type="number"
+                      name="paid_amount"
+                      value={paymentFormData.paid_amount}
+                      onChange={handlePaymentChange}
+                      placeholder="Enter amount"
+                      className="rounded-3 shadow-sm"
+                      style={{ borderColor: "#e9ecef" }}
+                      min="0"
+                      step="0.01"
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label className="fw-bold text-dark">
+                      <i className="fas fa-calendar-alt me-1"></i>Payment Date
+                    </Form.Label>
+                    <Form.Control
+                      type="date"
+                      name="payment_date"
+                      value={paymentFormData.payment_date}
+                      onChange={handlePaymentChange}
+                      className="rounded-3 shadow-sm"
+                      style={{ borderColor: "#e9ecef" }}
+                    />
+                  </Form.Group>
+                </Form>
+              </Card.Body>
+            </Card>
+          </Modal.Body>
+          <Modal.Footer
+            className="bg-light border-0 pt-0"
+            style={{ borderRadius: "0 0 10px 10px" }}
+          >
+            <Button
+              variant="bg-dark"
+              onClick={() => setShowPaymentModal(false)}
+              className="rounded-pill px-4 me-2"
+            >
+              <i className="fas fa-times me-1"></i>Cancel
+            </Button>
+            <Button
+              variant="bg-primary"
+              onClick={handlePaymentSubmit}
+              disabled={loading}
+              className="rounded-pill px-4"
+            >
+              {loading ? (
+                <>
+                  <i className="fas fa-spinner fa-spin me-1"></i>Processing...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-check me-1"></i>Pay Now
+                </>
+              )}
+            </Button>
           </Modal.Footer>
         </Modal>
       </Container>
