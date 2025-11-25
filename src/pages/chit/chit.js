@@ -13,17 +13,17 @@ import { LiaEditSolid } from "react-icons/lia";
 import { MdOutlineDelete } from "react-icons/md";
 
 const Chit = () => {
-  const { t, cacheVersion } = useLanguage();  
+  const { t, cacheVersion } = useLanguage();
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
   const [chitData, setChitData] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // 1. Handlers for Edit and Delete Actions
-  const handleEditClick = async (rowData) => { 
+  const handleEditClick = async (rowData) => {
     console.log("Edit Group ID:", rowData.chit_id);
-    const chitId = rowData.chit_id; 
-    setLoading(true); 
+    const chitId = rowData.chit_id;
+    setLoading(true);
 
     try {
       console.log("Inside try block");
@@ -31,35 +31,41 @@ const Chit = () => {
       const requestPayload = { chit_id: chitId };
       console.log("Edit Load Payload:", requestPayload);
 
-       const response = await fetch(`${API_DOMAIN}/chit.php`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(requestPayload), 
+      const response = await fetch(`${API_DOMAIN}/chit.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestPayload),
+      });
+      console.log("Response:", JSON.stringify(requestPayload));
+
+      const responseData = await response.json();
+      console.log("Response Data:", responseData);
+
+      setLoading(false);
+      if (
+        responseData.head.code === 200 &&
+        responseData.data.chit &&
+        responseData.data.chit.length > 0
+      ) {
+        const detailedRowData = responseData.data.chit[0];
+        console.log("Detailed Row Data:", detailedRowData);
+        navigate("/console/master/chit/create", {
+          state: {
+            type: "edit",
+            rowData: detailedRowData,
+          },
         });
-        console.log("Response:", JSON.stringify(requestPayload));
-
-        const responseData = await response.json();
-        console.log("Response Data:", responseData);
-
-        setLoading(false);
-        if (responseData.head.code === 200 && responseData.data.chit && responseData.data.chit.length > 0) {
-            const detailedRowData = responseData.data.chit[0];
-            console.log("Detailed Row Data:", detailedRowData);
-            navigate("/console/master/chit/create", {
-                state: {
-                    type: "edit",
-                    rowData: detailedRowData, 
-                },
-            });
-        } else {
-            console.error("Failed to fetch detailed chit data:", responseData.head.msg);
-           
-        }
+      } else {
+        console.error(
+          "Failed to fetch detailed chit data:",
+          responseData.head.msg
+        );
+      }
     } catch (error) {
-        setLoading(false);
-        console.error("Error during edit fetch:", error);
+      setLoading(false);
+      console.error("Error during edit fetch:", error);
     }
-};
+  };
   const handleDeleteClick = async (chitId) => {
     console.log("Delete Group ID:", chitId);
     setLoading(true);
@@ -92,47 +98,45 @@ const Chit = () => {
 
   // 2. Corrected Data Fetching Logic
   useEffect(() => {
-     const fetchData = async () => {
-       console.log("Fetching data with search text:", searchText);
-       setLoading(true);
-       try {
-         const response = await fetch(`${API_DOMAIN}/chit.php`, {
-           method: "POST",
-           headers: {
-             "Content-Type": "application/json",
-           },
-           body: JSON.stringify({
-             search_text: searchText,
-           }),
-         });
-         const responseData = await response.json();
-         console.log(responseData);
- 
-         if (responseData.head.code === 200) {
-           setChitData(
-             Array.isArray(responseData.data.all)
-               ? responseData.data.all
-               : [] 
-           );
-           setLoading(false);
-         } else {
-           setChitData([]);
-           setLoading(false);
-         }
-       } catch (error) {
-         setLoading(false);
-         console.error("Error fetching data:", error.message);
-       }
-     };
- 
-     fetchData();
-   }, [searchText]);
-  
+    const fetchData = async () => {
+      console.log("Fetching data with search text:", searchText);
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_DOMAIN}/chit.php`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            search_text: searchText,
+          }),
+        });
+        const responseData = await response.json();
+        console.log(responseData);
+
+        if (responseData.head.code === 200) {
+          setChitData(
+            Array.isArray(responseData.data.all) ? responseData.data.all : []
+          );
+          setLoading(false);
+        } else {
+          setChitData([]);
+          setLoading(false);
+        }
+      } catch (error) {
+        setLoading(false);
+        console.error("Error fetching data:", error.message);
+      }
+    };
+
+    fetchData();
+  }, [searchText]);
+
   // 3. Define Material React Table Columns (Added Chit No and Due Amount)
   const columns = useMemo(
     () => [
-     {
-        accessorKey: "s_no_key", 
+      {
+        accessorKey: "s_no_key",
         header: t("S.No"),
         size: 50,
         enableColumnFilter: false,
@@ -143,7 +147,7 @@ const Chit = () => {
         header: t("Customer No"),
         size: 100,
       },
-       {
+      {
         accessorKey: "name",
         header: t("Customer Name"),
         size: 150,
@@ -153,7 +157,7 @@ const Chit = () => {
         header: t("Chit Type"),
         size: 150,
       },
-      
+
       {
         id: "action",
         header: t("Action"),
@@ -177,12 +181,11 @@ const Chit = () => {
               </IconButton>
             </Tooltip>
 
-         
             <Tooltip title={t("Delete")}>
               <IconButton
                 onClick={() =>
                   // NOTE: Changed to chit_id as it is the unique identifier for the chit
-                  handleDeleteClick(row.original.chit_id) 
+                  handleDeleteClick(row.original.chit_id)
                 }
                 sx={{ color: "#dc3545", padding: 0 }}
               >
@@ -193,7 +196,7 @@ const Chit = () => {
         ),
       },
     ],
-    [t, cacheVersion] 
+    [t, cacheVersion]
   );
 
   // 4. Update JSX to render MaterialReactTable (Using t() for display strings)
@@ -207,15 +210,12 @@ const Chit = () => {
             </div>
           </Col>
           <Col lg="5" md="6" xs="6" className="align-self-center text-end">
-            {isAdmin &&(
-            <ClickButton
-              label={<>{t("Add Chit")}</>}
-              onClick={() => navigate("/console/master/chit/create")}
-            >
-              
-            </ClickButton>
-              )}
-            
+            {isAdmin && (
+              <ClickButton
+                label={<>{t("Add Chit")}</>}
+                onClick={() => navigate("/console/master/chit/create")}
+              ></ClickButton>
+            )}
           </Col>
           {/* ... (Search Bar remains the same) ... */}
           <Col lg={9} md={12} xs={12} className="py-2"></Col>
