@@ -204,10 +204,7 @@ input:focus {
 }
 
 .App {
- /* Set the default (Theme A) background */
- /* background-color: #97b8ff;  */
- /* background: black; */
- background:rgb(116 86 102) !important;
+ background:#8d3338b8 !important;
  min-height: 100vh; 
  transition: background-color 0.3s ease;
 }
@@ -218,19 +215,6 @@ input:focus {
   border-radius: 4px !important;
   outline: 0px !important;
 }
-
-/* .delete {
-  color: red !important;
-  border-radius: 6px !important;
-  font-weight: 800 !important;
-  transition: 0.5s all;
-  font-size: 28px !important;
-  font-family: "regular" !important;
-  background: none !important;
-  border-radius: 0px 8px 8px 0px !important;
-  padding: 6.1px 12px !important;
-} */
-
 .main-content {
   padding: 10px 28px !important;
   margin-left: 240px;
@@ -239,7 +223,7 @@ input:focus {
 }
 
 .main {
- background:#cbca9c!important;
+ background:#3b282966!important;
   padding-top: 65px;
   border-radius: 10px;
   padding: 20px;

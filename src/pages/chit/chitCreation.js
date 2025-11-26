@@ -547,7 +547,7 @@ const ChitCreation = () => {
           {(type === "edit" || type === "view") && dueRecords.length > 0 && (
             <Col lg={12} md={12} xs={12} className="mt-4">
               <Card className="shadow-sm">
-                <Card.Header as="h5" className="bg-light">
+                <Card.Header as="h5" className="bg-light" align="center">
                   {t("Current Due Payment Details")}
                 </Card.Header>
                 <Card.Body className="p-0">
@@ -705,7 +705,6 @@ const ChitCreation = () => {
           </Modal.Footer>
         </Modal>
 
-        {/* Payment Modal */}
         {/* Payment Modal */}
         <Modal
           show={showPaymentModal}
