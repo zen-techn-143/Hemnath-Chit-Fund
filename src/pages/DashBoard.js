@@ -215,7 +215,7 @@ const DashBoard = () => {
   const [barGraphLoading, setBarGraphLoading] = useState(false);
   const [selectedMonthKey, setSelectedMonthKey] = useState("");
   const [selectedYear, setSelectedYear] = useState(currentFullYear);
-const [chartTitle, setChartTitle] = useState('Monthly Payment Summary');
+  const [chartTitle, setChartTitle] = useState("Monthly Payment Summary");
   const user = JSON.parse(localStorage.getItem("user")) || {};
 
   //FETCH COUNT
@@ -330,23 +330,17 @@ const [chartTitle, setChartTitle] = useState('Monthly Payment Summary');
 
   // Handle click on Bar
   const handleBarClick = (data, index) => {
-    const monthKey = data.month_key; 
-    const monthName = data.name; 
+    const monthKey = data.month_key;
+    const monthName = data.name;
     setSelectedMonthKey(monthKey);
     fetchDailyData(monthKey, monthName);
   };
 
   const handleBackClick = async () => {
-  // 1. Change the view state back to monthly
-  setView('monthly');
-  
-  // 2. Change the chart header title
-  setChartTitle('Monthly Payment Summary'); 
-  
-  // 3. ⭐ Call the API to fetch the monthly data for the currently selected year
-  //    (This assumes 'selectedYear' state is in scope)
-  await fetchBarGraphData(selectedYear);
-};
+    setView("monthly");
+    setChartTitle("Monthly Payment Summary");
+    await fetchBarGraphData(selectedYear);
+  };
 
   return (
     <Box sx={{ minHeight: "100vh", backgroundColor: "#e9e9e9", py: 4 }}>
@@ -392,7 +386,6 @@ const [chartTitle, setChartTitle] = useState('Monthly Payment Summary');
                       : "Visualizing daily fluctuations"}
                   </Typography>
                 </Box>
-
                 {/* --- ACTION BUTTON/SELECTOR --- */}
                 {view === "daily" ? (
                   <Button
@@ -404,30 +397,28 @@ const [chartTitle, setChartTitle] = useState('Monthly Payment Summary');
                   >
                     Back to Months
                   </Button>
-                ) : (
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                    style={{
-                      padding: "5px 10px",
-                      borderRadius: "4px",
-                      border: "1px solid #ccc",
-                    }}
-                  >
-                    {/* Generates current year and previous 4 years */}
-                    {[...Array(5).keys()].map((i) => {
-                      const year = (new Date().getFullYear() - i).toString();
-                      return (
-                        <option key={year} value={year}>
-                          {year}
-                        </option>
-                      );
-                    })}
-                  </select>
-                )}
+                ) : // The year selector has been commented out as requested.
+                // <select
+                //   value={selectedYear}
+                //   onChange={(e) => setSelectedYear(e.target.value)}
+                //   style={{
+                //     padding: "5px 10px",
+                //     borderRadius: "4px",
+                //     border: "1px solid #ccc",
+                //   }}
+                // >
+                //   {/* Generates current year and previous 4 years */}
+                //   {[...Array(5).keys()].map((i) => {
+                //     const year = (new Date().getFullYear() - i).toString();
+                //     return (
+                //       <option key={year} value={year}>
+                //         {year}
+                //       </option>
+                //     );
+                //   })}
+                // </select>
+                null}
               </Box>
-
-              {/* --- CHART CONTENT --- */}
               {barGraphLoading ? (
                 <Box
                   sx={{
@@ -446,7 +437,6 @@ const [chartTitle, setChartTitle] = useState('Monthly Payment Summary');
               ) : (
                 <ResponsiveContainer width="100%" height="85%">
                   {view === "monthly" ? (
-                    // 1. MONTHLY VIEW (BAR CHART) - (No Change needed here)
                     <BarChart
                       data={chartData}
                       margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
@@ -474,12 +464,10 @@ const [chartTitle, setChartTitle] = useState('Monthly Payment Summary');
                       />
                     </BarChart>
                   ) : (
-                    // 2. DAILY VIEW (AREA CHART) - 🎯 CORRECTED BLOCK
                     <AreaChart
                       data={chartData}
                       margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                     >
-                      {/* Gradient Definition for the Paid area */}
                       <defs>
                         <linearGradient
                           id="colorPaid"
@@ -499,7 +487,6 @@ const [chartTitle, setChartTitle] = useState('Monthly Payment Summary');
                             stopOpacity={0}
                           />
                         </linearGradient>
-                        {/* ⭐ ADDED: Gradient Definition for the UnPaid area */}
                         <linearGradient
                           id="colorUnPaid"
                           x1="0"
@@ -522,7 +509,6 @@ const [chartTitle, setChartTitle] = useState('Monthly Payment Summary');
 
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
 
-                      {/* ⭐ FIX: dataKey must be "day" for the daily graph */}
                       <XAxis
                         dataKey="day"
                         angle={-45}
@@ -535,7 +521,6 @@ const [chartTitle, setChartTitle] = useState('Monthly Payment Summary');
                       <YAxis />
                       <Tooltip />
 
-                      {/* Paid Area Series */}
                       <Area
                         type="monotone"
                         dataKey="Paid"
@@ -560,7 +545,6 @@ const [chartTitle, setChartTitle] = useState('Monthly Payment Summary');
                   )}
                 </ResponsiveContainer>
               )}
-              {/* --- END CHART CONTENT --- */}
             </Card>
           </Grid>
           <Grid item xs={12} md={4}>
