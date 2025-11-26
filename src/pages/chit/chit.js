@@ -10,6 +10,7 @@ import { MaterialReactTable } from "material-react-table";
 import { Box, Tooltip, IconButton } from "@mui/material";
 import { LiaEditSolid } from "react-icons/lia";
 import { FiX } from 'react-icons/fi';
+import { FaEye } from 'react-icons/fa';
 
 const Chit = () => {
   const { t, cacheVersion } = useLanguage();
@@ -63,8 +64,7 @@ const Chit = () => {
   }, [searchText]);
 
   const handleEditClick = async (rowData) => {
-    console.log("Edit Chit ID:", rowData.chit_id);
-
+  
     const chitId = rowData.chit_id;
     setLoading(true);
 
@@ -97,6 +97,42 @@ const Chit = () => {
     } catch (error) {
       setLoading(false);
       console.error("Error editing chit:", error);
+    }
+  };
+  const handleViewClick = async (rowData) => {
+    const chitId = rowData.chit_id;
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_DOMAIN}/chit.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chit_id: chitId }),
+      });
+
+      const responseData = await response.json();
+      setLoading(false);
+
+      if (
+        responseData.head.code === 200 &&
+        responseData.data.chit &&
+        responseData.data.chit.length > 0
+      ) {
+        const detailedRowData = responseData.data.chit[0];
+          console.log("Detailed Row Data:", detailedRowData);
+        navigate("/console/master/chit/create", {
+          state: {
+            // ⭐ Navigate to 'view' type
+            type: "view", 
+            rowData: detailedRowData,
+          },
+        });
+      } else {
+        console.error("Failed to fetch chit details for view");
+      }
+    } catch (error) {
+      setLoading(false);
+      console.error("Error viewing chit:", error);
     }
   };
 
@@ -162,34 +198,50 @@ const Chit = () => {
         header: t("Chit Type"),
         size: 150,
       },
-
       {
         id: "action",
         header: t("Action"),
         size: 100,
         enableSorting: false,
         enableColumnFilter: false,
-        Cell: ({ row }) => (
-          <Box sx={{ display: "flex", gap: "10px" }}>
-            <Tooltip title={t("Edit")}>
-              <IconButton
-                onClick={() => handleEditClick(row.original)}
-                sx={{ color: "#0d6efd", padding: 0 }}
-              >
-                <LiaEditSolid />
-              </IconButton>
-            </Tooltip>
+        Cell: ({ row }) => {
+         const isClosed = row.original.freeze_at === 1 || row.original.freeze_at === '1';
 
-            <Tooltip title={t("Close")}>
-              <IconButton
-                onClick={() => handleCloseClick(row.original.chit_id)}
-                sx={{ color: "#dc3545", padding: 0 }}
-              >
-                <FiX/>
-              </IconButton>
-            </Tooltip>
-          </Box>
-        ),
+          return (
+            <Box sx={{ display: "flex", gap: "10px" }}>
+              {isClosed ? (
+                <Tooltip title={t("View")}>
+                  <IconButton
+                    onClick={() => handleViewClick(row.original)} 
+                    sx={{ color: "#0d6efd", padding: 0 }}
+                  >
+                    <FaEye /> 
+                  </IconButton>
+                </Tooltip>
+              ) : (
+                <>
+                  <Tooltip title={t("Edit")}>
+                    <IconButton
+                      onClick={() => handleEditClick(row.original)}
+                      sx={{ color: "#0d6efd", padding: 0 }}
+                    >
+                      <LiaEditSolid />
+                    </IconButton>
+                  </Tooltip>
+
+                  <Tooltip title={t("Close")}>
+                    <IconButton
+                      onClick={() => handleCloseClick(row.original.chit_id)}
+                      sx={{ color: "#dc3545", padding: 0 }}
+                    >
+                      <FiX/>
+                    </IconButton>
+                  </Tooltip>
+                </>
+              )}
+            </Box>
+          );
+        },
       },
     ],
     [t, cacheVersion]

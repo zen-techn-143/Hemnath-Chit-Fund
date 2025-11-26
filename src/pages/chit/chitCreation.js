@@ -22,17 +22,22 @@ const ChitCreation = () => {
   const { t } = useLanguage();
   const location = useLocation();
   const { type, rowData } = location.state || {};
+ console.log("Current Page Type:", type);
+  console.log("Row Data Passed:", rowData); // Check if this object is populate
   const user = JSON.parse(localStorage.getItem("user")) || {};
   const { chit_id, ...otherRowData } = rowData || {};
 
+
+
   const initialState =
-    type === "edit"
+    type === "edit" || type === "view"
       ? {
           ...otherRowData,
           chit_type: rowData?.chit_type_id || "",
           customer_id: rowData?.customer_id || "",
         }
       : {
+          // This is the "new" chit creation default
           chit_type_id: "",
           customer_id: "",
           chit_no: "",
@@ -41,7 +46,6 @@ const ChitCreation = () => {
         };
 
   const [formData, setFormData] = useState(initialState);
-  console.log("Form Data:", formData);
   const [customerOptions, setCustomerOptions] = useState([]);
   const [chitTypeOptions, setChitTypeOptions] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -71,7 +75,7 @@ const ChitCreation = () => {
   const redirectModal = () => {
     navigate("/console/master/chit");
   };
-
+  
   const handleCustomerChange = (selectedOption) => {
     if (selectedOption) {
       setFormData({ ...formData, customer_id: selectedOption.value });
@@ -251,7 +255,7 @@ const ChitCreation = () => {
 
         setCustomerOptions(options);
 
-        if (type === "edit" && rowData?.customer_id) {
+        if (type === "edit"|| type === "view" && rowData?.customer_id) {
           const preSelected = options.find(
             (opt) => opt.value === rowData.customer_id
           );
@@ -285,7 +289,7 @@ const ChitCreation = () => {
         setChitTypeOptions(options);
 
         // Pre-select logic
-        if (type === "edit" && rowData?.chit_type_id) {
+        if (type === "edit"|| type === "view" && rowData?.chit_type_id) {
           const preSelectedChitType = options.find(
             (opt) => opt.value === rowData.chit_type_id
           );
@@ -319,7 +323,6 @@ const ChitCreation = () => {
       setDueRecords([]);
     }
   };
- 
 
   const fetchNextChitNo = async (customerId, chitTypeId) => {
     console.log("Customer ID:", customerId);
@@ -385,7 +388,7 @@ const ChitCreation = () => {
       }));
     }
   };
- 
+
   //USEEFECT FUNCTION
   useEffect(() => {
     fetchDataCustomer();
@@ -393,7 +396,7 @@ const ChitCreation = () => {
   }, []);
 
   useEffect(() => {
-    if (type === "edit" && rowData?.chit_id) {
+    if (type === "edit"|| type === "view" && rowData?.chit_id) {
       fetchDueRecords(rowData.chit_id);
     } else {
       setDueRecords([]);
@@ -403,8 +406,8 @@ const ChitCreation = () => {
   useEffect(() => {
     if (
       type !== "edit" &&
-      formData.customer_id !== "" && 
-      formData.chit_type !== "" 
+      formData.customer_id !== "" &&
+      formData.chit_type !== ""
     ) {
       fetchNextChitNo(formData.customer_id, formData.chit_type);
     } else {
@@ -412,14 +415,27 @@ const ChitCreation = () => {
     }
   }, [formData.customer_id, formData.chit_type, type]);
 
+  useEffect(() => {
+      if (type === "view") {
+          console.log("Final State Data (formData):", formData);
+      }
+  }, [type, formData]);
+
+  const userTitleSegment = 
+    type === "view"
+      ? ` ${t("view")}`
+      : type === "edit"
+      ? ` ${t("Edit")}`
+      : ` ${t("Creation")}`;
   return (
     <div>
       <Container>
         <Row className="regular">
           <Col lg="12" md="12" xs="12" className="py-3">
-            <PageNav pagetitle={"Chit Management"} />
+            <PageNav
+               pagetitle={`${t("Chit")}${userTitleSegment}`}
+            />
           </Col>
-
 
           <Col lg="4" md="12" xs="12" className="py-3">
             <div className="mb-4">
@@ -433,7 +449,7 @@ const ChitCreation = () => {
                 options={customerOptions}
                 onChange={handleCustomerChange}
                 value={selectedCustomerOption}
-                isDisabled={type === "edit"}
+                isDisabled={type === "edit" || type === "view"}
               />
             </div>
             {selectedCustomer && (
@@ -527,13 +543,13 @@ const ChitCreation = () => {
                 options={chitTypeOptions}
                 onChange={handleChitTypeChange}
                 value={selectedChitTypeObject}
-                isDisabled={type === "edit"}
+                isDisabled={type === "edit" || type === "view"}
               />
             </div>
           </Col>
 
           {/* ⭐ 4. DUE PAYMENT TABLE (Only visible in edit mode with data) */}
-          {type === "edit" && dueRecords.length > 0 && (
+          {type === "edit"|| type === "view" && dueRecords.length > 0 && (
             <Col lg={12} md={12} xs={12} className="mt-4">
               <Card className="shadow-sm">
                 <Card.Header as="h5" className="bg-light">
@@ -595,64 +611,32 @@ const ChitCreation = () => {
 
           <Col lg="12" md="12" xs="12" className="py-5 align-self-center">
             <div style={{ textAlign: "right", paddingRight: "5px" }}>
+              {/* Check if the type is "view" */}
               {type === "view" ? (
+                // Only show the Back button in view mode
                 <ClickButton
                   label={<>{t("Back")}</>}
                   onClick={() => navigate("/console/master/chit")}
                 ></ClickButton>
               ) : (
+                // Show Submit/Save buttons in "edit" or "new" mode
                 <>
-                  <ToastContainer
-                    position="top-center"
-                    autoClose={2000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                    theme="colored"
-                  />
-                  {type === "edit" ? (
-                    <>
-                      <span className="mx-2">
-                        <ClickButton
-                          label={<>{t("Update")}</>}
-                          // onClick={handleUpdateSubmit}
-                        ></ClickButton>
-                      </span>
-
-                      <span className="mx-2">
-                        <Delete
-                          label={<>{t("Cancel")}</>}
-                          onClick={() => navigate("/console/master/chit")}
-                        ></Delete>
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="mx-2">
-                        <ClickButton
-                          label={
-                            loading ? (
-                              <>{t("Submitting...")}</>
-                            ) : (
-                              <>{t("Submit")}</>
-                            )
-                          }
-                          onClick={handleSubmit}
-                          disabled={loading}
-                        ></ClickButton>
-                      </span>
-                      <span className="mx-2">
-                        <Delete
-                          label={t("Cancel")}
-                          onClick={() => navigate("/console/master/chit")}
-                        ></Delete>
-                      </span>
-                    </>
-                  )}
+                  <Delete
+                    label={<>{t("Cancel")}</>}
+                    // variant="danger"
+                    onClick={() => navigate("/console/master/chit")}
+                  ></Delete>
+                  <ClickButton
+                    label={
+                      loading ? (
+                        <i className="fas fa-spinner fa-spin me-1"></i>
+                      ) : (
+                        <>{t("Save")}</>
+                      )
+                    }
+                    onClick={handleSubmit}
+                    disabled={loading}
+                  ></ClickButton>
                 </>
               )}
             </div>
@@ -746,6 +730,7 @@ const ChitCreation = () => {
                       name="paid_amount"
                       value={paymentFormData.paid_amount}
                       onChange={handlePaymentChange}
+                      readOnly={type === "view"}
                       placeholder="Enter amount"
                       className="rounded-3 shadow-sm"
                       style={{ borderColor: "#e9ecef" }}
@@ -761,6 +746,7 @@ const ChitCreation = () => {
                       type="date"
                       name="payment_date"
                       value={paymentFormData.payment_date}
+                      readOnly={type === "view"}
                       onChange={handlePaymentChange}
                       className="rounded-3 shadow-sm"
                       style={{ borderColor: "#e9ecef" }}
