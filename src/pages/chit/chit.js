@@ -9,7 +9,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { MaterialReactTable } from "material-react-table";
 import { Box, Tooltip, IconButton } from "@mui/material";
 import { LiaEditSolid } from "react-icons/lia";
-import { MdOutlineDelete } from "react-icons/md";
+import { FiX } from 'react-icons/fi';
 
 const Chit = () => {
   const { t, cacheVersion } = useLanguage();
@@ -185,7 +185,7 @@ const Chit = () => {
                 onClick={() => handleCloseClick(row.original.chit_id)}
                 sx={{ color: "#dc3545", padding: 0 }}
               >
-                <MdOutlineDelete />
+                <FiX/>
               </IconButton>
             </Tooltip>
           </Box>
@@ -267,7 +267,7 @@ const Chit = () => {
           </Form.Group>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowCloseModal(false)}>
+          <Button variant="danger" onClick={() => setShowCloseModal(false)}>
             {t("Cancel")}
           </Button>
           <Button

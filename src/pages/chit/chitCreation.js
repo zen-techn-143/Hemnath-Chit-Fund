@@ -35,13 +35,13 @@ const ChitCreation = () => {
       : {
           chit_type_id: "",
           customer_id: "",
-          chit_no: "CN002",
+          chit_no: "",
           chit_due_amount: "1000",
           emi_method: "Weekly",
         };
 
   const [formData, setFormData] = useState(initialState);
-  console.log(formData);
+  console.log("Form Data:", formData);
   const [customerOptions, setCustomerOptions] = useState([]);
   const [chitTypeOptions, setChitTypeOptions] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -113,6 +113,7 @@ const ChitCreation = () => {
     });
     setShowPaymentModal(true);
   };
+  // --- Fetch Data Functions ---
 
   const handlePaymentSubmit = async () => {
     if (
@@ -147,7 +148,6 @@ const ChitCreation = () => {
       }
 
       const text = await response.text();
-      console.log("Raw response:", text); // For debugging; remove in production if desired
       let resData;
       try {
         let cleanText = text.trim();
@@ -160,9 +160,6 @@ const ChitCreation = () => {
         console.error("Invalid JSON response:", text);
         throw new Error("Invalid response format from server");
       }
-
-      console.log("Payment Response:", resData);
-
       if (resData.status === "success") {
         toast.success(resData.message || "Payment successful");
         setShowPaymentModal(false);
@@ -178,19 +175,15 @@ const ChitCreation = () => {
     }
   };
   const handleSubmit = async () => {
-    console.log("Form Data:", formData);
     const selectedChitTypeOption = chitTypeOptions.find(
       (opt) => opt.value === formData.chit_type
     );
-    console.log("Selected Chit Type Option:", selectedChitTypeOption);
     const chitTypeName = selectedChitTypeOption
       ? selectedChitTypeOption.label
       : "";
 
-    console.log("Chit Type Name:", chitTypeName);
     const customerDetailsString = `${selectedCustomer?.customer_no} - ${selectedCustomer?.name}`;
 
-    console.log("Customer Details String:", customerDetailsString);
     const payload = {
       customer_details: customerDetailsString,
       customer_id: formData.customer_id,
@@ -201,11 +194,7 @@ const ChitCreation = () => {
       emi_method: formData.emi_method,
       current_user_id: user.user_id,
     };
-
-    console.log("Payload being sent:", payload);
-
     try {
-      console.log("Inside try block");
       setLoading(true);
       const response = await fetch(`${API_DOMAIN}/chit.php`, {
         method: "POST",
@@ -214,11 +203,8 @@ const ChitCreation = () => {
         },
         body: JSON.stringify(payload),
       });
-      console.log("Response:", response);
 
       const responseData = await response.json();
-      console.log("Response Data:", responseData);
-
       if (responseData.head.code === 200) {
         toast.success(responseData.head.msg, {
           position: "top-center",
@@ -334,7 +320,72 @@ const ChitCreation = () => {
       setDueRecords([]);
     }
   };
+  // In chitCreation.js (around L362)
 
+  const fetchNextChitNo = async (customerId, chitTypeId) => {
+    console.log("Customer ID:", customerId);
+    console.log("Chit Type ID:", chitTypeId);
+    if (!customerId || !chitTypeId) {
+      setFormData((prevData) => ({ ...prevData, chit_no: "" }));
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_DOMAIN}/chit.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ search_text: "" }),
+      });
+
+      const responseData = await response.json();
+      console.log("Fetch Response Data for COUNT:", responseData);
+      if (responseData.head.code !== 200 && responseData.head.code !== 404) {
+        console.error(
+          "Critical API error fetching chits:",
+          responseData.head.msg
+        );
+        setFormData((prevData) => ({ ...prevData, chit_no: "Fetch Error" }));
+        return;
+      }
+      const existingChits = responseData?.data?.all;
+      const chitsArray = Array.isArray(existingChits) ? existingChits : [];
+      const chitsOfCurrentCustomer = chitsArray.filter(
+        (chit) => String(chit.customer_id) === String(customerId)
+      );
+      let maxNumber = 0;
+      const regex = /^CH(\d+)$/;
+
+      chitsOfCurrentCustomer.forEach((chit) => {
+        if (chit.chit_no) {
+          const match = String(chit.chit_no).match(regex);
+          if (match) {
+            const number = parseInt(match[1], 10);
+            if (number > maxNumber) {
+              maxNumber = number;
+            }
+          }
+        }
+      });
+
+      // ⭐ STEP 3: Generate the next number
+      const nextNumber = maxNumber + 1;
+
+      const formattedNumber = String(nextNumber).padStart(3, "0");
+      const nextChitNo = `CH${formattedNumber}`; // CH001, CH002, etc.
+
+      // 4. Update the form data
+      setFormData((prevData) => ({
+        ...prevData,
+        chit_no: nextChitNo,
+      }));
+    } catch (error) {
+      console.error("Client-side Chit No. generation failed:", error.message);
+      setFormData((prevData) => ({
+        ...prevData,
+        chit_no: "Local Error",
+      }));
+    }
+  };
   // --- useEffect Hooks ---
 
   useEffect(() => {
@@ -349,6 +400,18 @@ const ChitCreation = () => {
       setDueRecords([]);
     }
   }, [type, rowData]);
+
+  useEffect(() => {
+    if (
+      type !== "edit" &&
+      formData.customer_id !== "" && 
+      formData.chit_type !== "" 
+    ) {
+      fetchNextChitNo(formData.customer_id, formData.chit_type);
+    } else {
+      setFormData((prevData) => ({ ...prevData, chit_no: "" }));
+    }
+  }, [formData.customer_id, formData.chit_type, type]);
 
   return (
     <div>
@@ -371,6 +434,7 @@ const ChitCreation = () => {
                 options={customerOptions}
                 onChange={handleCustomerChange}
                 value={selectedCustomerOption}
+                isDisabled={type === "edit"}
               />
             </div>
             {selectedCustomer && (
@@ -465,6 +529,7 @@ const ChitCreation = () => {
                 options={chitTypeOptions}
                 onChange={handleChitTypeChange}
                 value={selectedChitTypeObject}
+                isDisabled={type === "edit"}
               />
             </div>
             {/* Removed duplicate customer card; add chit type info if needed */}
@@ -713,14 +778,14 @@ const ChitCreation = () => {
             style={{ borderRadius: "0 0 10px 10px" }}
           >
             <Button
-              variant="bg-dark"
+              variant="danger"
               onClick={() => setShowPaymentModal(false)}
               className="rounded-pill px-4 me-2"
             >
               <i className="fas fa-times me-1"></i>Cancel
             </Button>
             <Button
-              variant="bg-primary"
+              variant="primary"
               onClick={handlePaymentSubmit}
               disabled={loading}
               className="rounded-pill px-4"
