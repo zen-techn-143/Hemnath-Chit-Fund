@@ -102,7 +102,7 @@ button {
 
 /* Submit (Blue) */
 .create-btn {
-  background: var(--theme-color-primary) !important;
+  background: rgb(122, 122, 197) !important;
   /* background:#574d1fe3!important; */
 }
 
@@ -116,7 +116,7 @@ button {
 }
 /* Hover effects */
 .create-btn:hover {
-  background: var(--theme-bg-button-hover) !important;
+  background: rgb(47, 47, 182)  !important;
 }
 
 .delete:hover {
