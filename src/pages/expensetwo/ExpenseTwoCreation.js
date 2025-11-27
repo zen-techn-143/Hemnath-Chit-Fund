@@ -42,7 +42,7 @@ const ExpenseTwoCreation = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`${API_DOMAIN}/expense.php`, {
+      const response = await fetch(`${API_DOMAIN}/category_report.php`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
