@@ -6,11 +6,11 @@ import API_DOMAIN from "../../config/config";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { generatePDF, generateExcel } from "./ExpenseReportPdfAndExcel";
-import { useLanguage } from '../../components/LanguageContext';
-import dayjs from 'dayjs'; 
+import { useLanguage } from "../../components/LanguageContext";
+import dayjs from "dayjs";
 
 const ExpenseReport = () => {
-   const { t } = useLanguage(); 
+  const { t } = useLanguage();
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -25,12 +25,13 @@ const ExpenseReport = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`${API_DOMAIN}/expense_two_category.php`, {
+      const response = await fetch(`${API_DOMAIN}/category_report.php`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ get_categories: true }),
       });
       const responseData = await response.json();
+      console.log(responseData);
       if (responseData.head.code === 200) {
         setCategories(responseData.body.categories || []);
       } else {
@@ -44,7 +45,7 @@ const ExpenseReport = () => {
   const fetchReport = async (filterParams = {}) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_DOMAIN}/expense_two_report.php`, {
+      const response = await fetch(`${API_DOMAIN}/expense_report.php`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ report: true, ...filterParams }),
@@ -183,7 +184,7 @@ const ExpenseReport = () => {
                 {reportData.length > 0 ? (
                   reportData.map((item, index) => (
                     <tr key={index}>
-                     <td>{dayjs(item.date).format("DD-MM-YYYY")}</td>
+                      <td>{dayjs(item.date).format("DD-MM-YYYY")}</td>
                       <td>{item.category_name}</td>
                       <td>{item.description}</td>
                       <td>{item.amount}</td>

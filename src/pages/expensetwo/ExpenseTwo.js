@@ -10,11 +10,11 @@ import { MaterialReactTable } from "material-react-table";
 import { Box, Tooltip, IconButton } from "@mui/material";
 import { LiaEditSolid } from "react-icons/lia";
 import { MdOutlineDelete } from "react-icons/md";
-import { useLanguage } from '../../components/LanguageContext'; 
+import { useLanguage } from "../../components/LanguageContext";
 
 const CategoryTwo = () => {
   const navigate = useNavigate();
-  const { t,cacheVersion } = useLanguage(); 
+  const { t, cacheVersion } = useLanguage();
   const [searchText, setSearchText] = useState("");
   const [userData, setUserData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -29,7 +29,7 @@ const CategoryTwo = () => {
     console.log("Deleting bank pledge ID:", id);
     setLoading(true);
     try {
-      const response = await fetch(`${API_DOMAIN}/expense_two.php`, {
+      const response = await fetch(`${API_DOMAIN}/expense.php`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -55,7 +55,7 @@ const CategoryTwo = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${API_DOMAIN}/expense_two.php`, {
+        const response = await fetch(`${API_DOMAIN}/expense.php`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -66,9 +66,10 @@ const CategoryTwo = () => {
         });
 
         const responseData = await response.json();
+        console.log(responseData);
         setLoading(false);
         if (responseData.head.code === 200) {
-          setUserData(responseData.body.expense_two);
+          setUserData(responseData.body.expense);
         } else {
           throw new Error(responseData.head.msg);
         }
@@ -99,7 +100,7 @@ const CategoryTwo = () => {
       },
       {
         id: "action",
-         header: t("Action"),
+        header: t("Action"),
         size: 100,
         enableColumnFilter: false,
         enableColumnOrdering: false,
@@ -136,7 +137,7 @@ const CategoryTwo = () => {
         ),
       },
     ],
-    [t,cacheVersion]
+    [t, cacheVersion]
   );
 
   // 4. Update JSX to render MaterialReactTable
@@ -199,7 +200,7 @@ const CategoryTwo = () => {
                     muiTableHeadCellProps={{
                       sx: {
                         fontWeight: "bold",
-                        backgroundColor: "#f8f9fa", 
+                        backgroundColor: "#f8f9fa",
                       },
                     }}
                   />

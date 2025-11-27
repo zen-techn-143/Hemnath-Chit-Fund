@@ -1,14 +1,11 @@
 import { MdSpaceDashboard } from "react-icons/md";
 import { FiUsers } from "react-icons/fi";
 
-
-
-
 import { BsBuildings, BsBarChartFill } from "react-icons/bs";
 import { FaMoneyBillTrendUp } from "react-icons/fa6";
 import { PiUsersThreeBold } from "react-icons/pi";
 import { MdCategory } from "react-icons/md";
-import { FaCogs,FaMoneyCheck} from "react-icons/fa";
+import { FaCogs, FaMoneyCheck } from "react-icons/fa";
 import { BiCollection } from "react-icons/bi";
 
 const sidebarConfig = [
@@ -37,7 +34,6 @@ const sidebarConfig = [
         icon: <MdCategory />,
       },
       {
-
         path: "/console/master/customer",
         icon: <PiUsersThreeBold />,
         text: "Customer",
@@ -45,8 +41,7 @@ const sidebarConfig = [
     ],
   },
 
-  
- {
+  {
     path: "/console/master/chit",
     text: "Chit",
     icon: <FaMoneyCheck />,

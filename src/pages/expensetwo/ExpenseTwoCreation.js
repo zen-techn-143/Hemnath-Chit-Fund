@@ -42,7 +42,7 @@ const ExpenseTwoCreation = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`${API_DOMAIN}/expense_two.php`, {
+      const response = await fetch(`${API_DOMAIN}/expense.php`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -149,7 +149,7 @@ const ExpenseTwoCreation = () => {
         submitData.edit_expense_id = rowData.expense_id;
       }
 
-      const response = await fetch(`${API_DOMAIN}/expense_two.php`, {
+      const response = await fetch(`${API_DOMAIN}/expense.php`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

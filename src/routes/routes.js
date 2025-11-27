@@ -14,6 +14,9 @@ import Chit from "../pages/chit/chit";
 import ChitCreation from "../pages/chit/chitCreation";
 import CustomerBankDetails from "../pages/customer/CustomerBankDetails";
 import CustomerHistory from "../pages/CustomerHistory";
+import CategoryTwoCreation from "../pages/categorytwo/CategoryTwoCreation";
+import ExpenseTwoCreation from "../pages/expensetwo/ExpenseTwoCreation";
+import ExpensePage from "../pages/expenses/ExpensePage";
 import CollectionReport from "../pages/CollectionReport";
 
 const routes = [
@@ -38,6 +41,12 @@ const routes = [
     path: "/console/report/customerhistory",
     element: <CustomerHistory />,
   },
+  { path: "/console/expense", element: <ExpensePage /> },
+  {
+    path: "/console/expense/category/create",
+    element: <CategoryTwoCreation />,
+  },
+  { path: "/console/expense/create", element: <ExpenseTwoCreation /> },
   {
     path: "/console/report/collectionreport",
     element: <CollectionReport />,

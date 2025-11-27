@@ -59,7 +59,7 @@ const CategoryTwoCreation = () => {
     }
     setLoading(true);
     try {
-      const response = await fetch(`${API_DOMAIN}/category_two.php`, {
+      const response = await fetch(`${API_DOMAIN}/category.php`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -105,7 +105,7 @@ const CategoryTwoCreation = () => {
   const handleUpdateSubmit = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_DOMAIN}/category_two.php`, {
+      const response = await fetch(`${API_DOMAIN}/category.php`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -188,7 +188,7 @@ const CategoryTwoCreation = () => {
             <div className="text-center">
               {type === "view" ? (
                 <ClickButton
-                 label={<>{t("back")}</>}
+                  label={<>{t("back")}</>}
                   onClick={() => navigate("/console/expense")}
                 ></ClickButton>
               ) : (
@@ -209,14 +209,14 @@ const CategoryTwoCreation = () => {
                       />
                       <span className="mx-2">
                         <ClickButton
-                         label={<>{t("Update")}</>}
+                          label={<>{t("Update")}</>}
                           onClick={handleUpdateSubmit}
                         ></ClickButton>
                       </span>
 
                       <span className="mx-2">
                         <ClickButton
-                         label={<>{t("Cancel")}</>}
+                          label={<>{t("Cancel")}</>}
                           onClick={() => navigate("/console/expense")}
                         ></ClickButton>
                       </span>
@@ -237,14 +237,20 @@ const CategoryTwoCreation = () => {
                       />
                       <span className="mx-2">
                         <ClickButton
-                         label={loading ? <>{t("Submitting...")}</> : <>{t("Submit")}</>}
+                          label={
+                            loading ? (
+                              <>{t("Submitting...")}</>
+                            ) : (
+                              <>{t("Submit")}</>
+                            )
+                          }
                           onClick={handleSubmit}
                           disabled={loading}
                         ></ClickButton>
                       </span>
                       <span className="mx-2">
                         <ClickButton
-                         label={<>{t("Cancel")}</>}
+                          label={<>{t("Cancel")}</>}
                           onClick={() => navigate("/console/expense")}
                         ></ClickButton>
                       </span>

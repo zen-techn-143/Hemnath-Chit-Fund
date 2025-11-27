@@ -1,0 +1,20 @@
+/* Custom styling for your expense tabs */
+.custom-nav-tabs .nav-link {
+  color: black !important;
+  background-color: transparent !important;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+/* Hover effect — dark blue */
+.custom-nav-tabs .nav-link:hover {
+  background-color: #041a3b !important;
+  color: white !important;
+}
+
+/* Active tab — stays dark blue */
+.custom-nav-tabs .nav-link.active {
+  background-color: #4d84d6 !important;
+  color: white !important;
+  border: none !important;
+}

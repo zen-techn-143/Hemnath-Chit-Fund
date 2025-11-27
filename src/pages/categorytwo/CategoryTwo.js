@@ -10,10 +10,10 @@ import { MaterialReactTable } from "material-react-table";
 import { Box, Tooltip, IconButton } from "@mui/material";
 import { LiaEditSolid } from "react-icons/lia";
 import { MdOutlineDelete } from "react-icons/md";
-import { useLanguage } from '../../components/LanguageContext'; 
+import { useLanguage } from "../../components/LanguageContext";
 
 const CategoryTwo = () => {
-  const { t,cacheVersion } = useLanguage(); 
+  const { t, cacheVersion } = useLanguage();
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
   const [userData, setUserData] = useState([]);
@@ -30,7 +30,7 @@ const CategoryTwo = () => {
     console.log("Deleting category two:", id);
     setLoading(true);
     try {
-      const response = await fetch(`${API_DOMAIN}/category_two.php`, {
+      const response = await fetch(`${API_DOMAIN}/category.php`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -58,7 +58,7 @@ const CategoryTwo = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${API_DOMAIN}/category_two.php`, {
+        const response = await fetch(`${API_DOMAIN}/category.php`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -71,7 +71,7 @@ const CategoryTwo = () => {
         const responseData = await response.json();
         setLoading(false);
         if (responseData.head.code === 200) {
-          setUserData(responseData.body.category_two);
+          setUserData(responseData.body.category);
         } else {
           throw new Error(responseData.head.msg);
         }
@@ -87,7 +87,7 @@ const CategoryTwo = () => {
   // 3. Define Material React Table Columns
   const columns = useMemo(
     () => [
-       {
+      {
         accessorKey: "s_no_key", // Add a unique, stable accessorKey
         header: t("S.No"),
         size: 50,
@@ -96,7 +96,7 @@ const CategoryTwo = () => {
       },
       {
         accessorKey: "category_name",
-        header: t("Category Name"), 
+        header: t("Category Name"),
         size: 50,
       },
       {
@@ -114,7 +114,7 @@ const CategoryTwo = () => {
             }}
           >
             {/* Edit Icon */}
-             <Tooltip title={t("Edit")}>
+            <Tooltip title={t("Edit")}>
               <IconButton
                 onClick={() => handlecategoryTwoEditClick(row.original)}
                 sx={{ color: "#0d6efd", padding: 0 }}
@@ -124,7 +124,7 @@ const CategoryTwo = () => {
             </Tooltip>
 
             {/* Delete Icon */}
-            <Tooltip title={t("Delete")}> 
+            <Tooltip title={t("Delete")}>
               <IconButton
                 onClick={() =>
                   handlecategoryTwoDeleteClick(row.original.category_id)
@@ -138,7 +138,7 @@ const CategoryTwo = () => {
         ),
       },
     ],
-    [t,cacheVersion]
+    [t, cacheVersion]
   );
 
   // 4. Update JSX to render MaterialReactTable
@@ -148,12 +148,12 @@ const CategoryTwo = () => {
         <Row>
           <Col lg="7" md="6" xs="6">
             <div className="page-nav py-3">
-             <span class="nav-list">{t("Category")}</span>
+              <span class="nav-list">{t("Category")}</span>
             </div>
           </Col>
           <Col lg="5" md="6" xs="6" className="align-self-center text-end">
             <ClickButton
-             label={<>{t("Add Category")}</>}
+              label={<>{t("Add Category")}</>}
               onClick={() => navigate("/console/expense/category/create")}
             ></ClickButton>
           </Col>
@@ -201,7 +201,7 @@ const CategoryTwo = () => {
                     muiTableHeadCellProps={{
                       sx: {
                         fontWeight: "bold",
-                        backgroundColor: "#f8f9fa", 
+                        backgroundColor: "#f8f9fa",
                       },
                     }}
                   />
