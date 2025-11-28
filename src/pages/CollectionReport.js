@@ -1,214 +1,294 @@
-import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Table, Form } from "react-bootstrap";
+import React, { useState, useEffect, useCallback } from "react";
+import { Container, Row, Col, Table, Form,Button } from "react-bootstrap";
 import PageTitle from "../components/PageTitle";
 import API_DOMAIN from "../config/config";
+import {ClickButton} from "../components/ClickButton";
 
 const CollectionReport = () => {
-  const [customers, setCustomers] = useState([]);
-  // Renamed for clarity, but keeping state key for minimal change
-  const [collectionData, setCollectionData] = useState([]); 
-  const [customerCode, setCustomerCode] = useState("");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+    const [customers, setCustomers] = useState([]);
+    const [collectionData, setCollectionData] = useState([]);
+    const [customerCode, setCustomerCode] = useState("");
+    const [fromDate, setFromDate] = useState("");
+    const [toDate, setToDate] = useState("");
+    const [chitTypes, setChitTypes] = useState([]);         
+    const [chitTypeFilter, setChitTypeFilter] = useState(""); 
+    const [paymentStatusFilter, setPaymentStatusFilter] = useState(""); 
 
-  const fetchCustomers = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_DOMAIN}/customer.php`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ search_text: "" }),
-      });
-      const responseData = await response.json();
-      setLoading(false);
-      if (responseData.head.code === 200) {
-        setCustomers(responseData.body.customer || []);
-      } else {
-        throw new Error(responseData.head.msg);
-      }
-    } catch (error) {
-      setLoading(false);
-      setError(error.message);
-    }
-  };
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-  const fetchCollectionReport = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_DOMAIN}/chit.php`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ get_date_collection_report: "" }),
-      });
-      const responseData = await response.json();
-      setLoading(false);
-      if (responseData.head.code === 200) {
-        // --- UPDATED: Use 'data' from the new JSON structure ---
-        setCollectionData(responseData.data || []);
-      } else {
-        throw new Error(responseData.head.msg);
-      }
-    } catch (error) {
-      setLoading(false);
-      setError(error.message);
-    }
-  };
-
-  useEffect(() => {
-    fetchCustomers();
-    fetchCollectionReport();
-  }, []);
-
-  // Helper function to check if a date is within the range
-  const isDateInRange = (collectionDate) => {
-    if (!collectionDate) return false;
-
-    // collectionDate is a 'YYYY-MM-DD' string
-    // Set time to start/end of day for accurate comparison
-    const collectionTimestamp = new Date(collectionDate).setHours(12, 0, 0, 0); // Use noon for safety
     
-    const fromTimestamp = fromDate ? new Date(fromDate).setHours(0, 0, 0, 0) : 0;
-    // Set to 23:59:59.999 to include all records on the 'toDate'
-    const toTimestamp = toDate ? new Date(toDate).setHours(23, 59, 59, 999) : Infinity;
+    const fetchCustomers = useCallback(async () => {
+        try {
+            const response = await fetch(`${API_DOMAIN}/customer.php`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ search_text: "" }),
+            });
+            const responseData = await response.json();
+            if (responseData.head.code === 200) {
+                setCustomers(responseData.body.customer || []);
+            } else {
+                console.error("Error fetching customers:", responseData.head.msg);
+            }
+        } catch (error) {
+            console.error("Network error fetching customers:", error.message);
+        }
+    }, []); 
 
-    return collectionTimestamp >= fromTimestamp && collectionTimestamp <= toTimestamp;
-  };
-
-
-  const filteredData = collectionData.filter((item) => {
-    const isCustomerMatch = customerCode ? item.customer_no === customerCode : true;
     
-    // --- UPDATED: Filter uses 'collection_date' field ---
-    const isDateMatch = (fromDate || toDate) ? isDateInRange(item.collection_date) : true;
-    
-    return isCustomerMatch && isDateMatch;
-  });
+    const fetchChitTypes = useCallback(async () => {
+        try {
+            const response = await fetch(`${API_DOMAIN}/chittype.php`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ search_text: "" }),
+            });
+            const responseData = await response.json();
 
-  // --- REMOVED: formatValue is no longer needed for flat collection data ---
+            if (responseData.head.code === 200) {
+                setChitTypes(
+                    Array.isArray(responseData.body.chit_type)
+                        ? responseData.body.chit_type
+                        : (responseData.body.chit_type ? [responseData.body.chit_type] : [])
+                );
+            } else {
+                console.error("Error fetching chit types:", responseData.head.msg);
+            }
+        } catch (error) {
+            console.error("Network error fetching chit types:", error.message);
+        }
+    }, []); 
 
-  return (
-    <div id="main">
-      <Container fluid>
-        <Row>
-          <Col xs="12" className="py-3">
-            <PageTitle PageTitle="Collection Report" showButton={false} />
-          </Col>
-        </Row>
+    //Function to fetch Report Data
+    const fetchCollectionReport = useCallback(async (custCode, fromDt, toDt, chitType, paymentStatus) => {
+        setError(null);
 
-        <Row>
-          {/* Date Filter Controls */}
-          <Col md="3" className="py-2">
-            <Form.Group controlId="fromDate">
-              <Form.Label>From Date</Form.Label>
-              <Form.Control
-                type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-              />
-            </Form.Group>
-          </Col>
-          <Col md="3" className="py-2">
-            <Form.Group controlId="toDate">
-              <Form.Label>To Date</Form.Label>
-              <Form.Control
-                type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-              />
-            </Form.Group>
-          </Col>
-          
-          {/* Customer Filter Control */}
-          <Col md="3" className="py-2">
-             <Form.Group controlId="customerNo">
-              <Form.Label>Customer No</Form.Label>
-              <Form.Select
-                value={customerCode}
-                onChange={(e) => setCustomerCode(e.target.value)}
-              >
-                <option value="">Select Customer No</option>
-                {customers.map((cust) => (
-                  <option key={cust.id} value={cust.customer_no}>
-                    {cust.customer_no} - {cust.name}
-                  </option>
-                ))}
-              </Form.Select>
-             </Form.Group>
-          </Col>
-        </Row>
+        try {
+            const response = await fetch(`${API_DOMAIN}/collection_report.php`, { 
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    get_date_collection_report: true,
+                    from_date: fromDt,
+                    to_date: toDt,
+                    customer_no: custCode,             
+                    chit_type: chitType,               
+                    payment_status: paymentStatus,     
+                }),
+            });
+            const responseData = await response.json();
+            
+            if (responseData.head.code === 200) {
+                setCollectionData(responseData.data || []);
+                if ((responseData.data || []).length === 0) {
+                     setError("No data found for the selected filters.");
+                } else {
+                    setError(null); // Clear error if data is found
+                }
+            } else {
+                setCollectionData([]);
+                setError(responseData.head.msg || "An error occurred while fetching the report.");
+            }
+        } catch (error) {
+            console.error("Error fetching report:", error);
+            setCollectionData([]);
+            setError("Network error: Could not connect to the API.");
+        } finally {
+            setLoading(false); 
+        }
+    }, []);
 
-        <Row>
-          <Col xs="12" className="py-3">
-            <Container fluid className="p-4">
-              <Row>
-                <Col lg="12">
-                  <Table
-                    bordered
-                    hover
-                    striped
-                    responsive
-                    className="mt-4 shadow-sm rounded"
-                  >
-                    <thead className="table-dark">
-                      <tr>
-                        <th>S.No</th>
-                        {/* --- UPDATED HEADERS --- */}
-                        <th>Collection Date</th>
-                        <th>Customer No.</th>
-                        <th>Customer Name</th>
-                        <th>Chit Type</th>
-                        <th>Due No.</th>
-                        <th>Due Amount</th>
-                        <th>Paid Amount</th>
-                        <th>Balance Amount</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredData.length > 0 ? (
-                        filteredData.map((item, index) => (
-                          <tr key={index}>
-                            <td>{index + 1}</td>
-                            {/* --- UPDATED TABLE BODY BINDING --- */}
-                            <td>
-                              {item.collection_date
-                                ? new Date(
-                                    item.collection_date
-                                  ).toLocaleDateString("en-GB")
-                                : "-"}
-                            </td>
-                            <td>{item.customer_no}</td>
-                            <td>{item.name}</td>
-                            <td>{item.chit_type}</td>
-                            <td>{item.due_no}</td>
-                            <td>{item.due_amt}</td>
-                            <td>{item.paid_amt}</td>
-                            <td>{item.balance_amt}</td>
-                            <td>{item.payment_status}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td
-                            colSpan={10} // Updated colspan to match new header count
-                            className="text-center text-muted py-4"
-                          >
-                            No collection data found
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </Table>
-                </Col>
-              </Row>
+    // 4. Function to handle button click
+    const handleApplyFilters = (e) => {
+        if (e) e.preventDefault();
+        setError(null);
+        setLoading(true); 
+        fetchCollectionReport(
+            customerCode, 
+            fromDate, 
+            toDate, 
+            chitTypeFilter, 
+            paymentStatusFilter
+        );
+    };
+
+
+    // 5. Initial setup
+    useEffect(() => {
+        fetchCustomers();
+        fetchChitTypes();
+    }, [fetchCustomers, fetchChitTypes]);
+
+
+    return (
+        <div id="main">
+            <Container fluid>
+                <Row>
+                    <Col xs="12" className="py-3">
+                        <PageTitle PageTitle="Collection Report" showButton={false} />
+                    </Col>
+                </Row>
+                <Form onSubmit={handleApplyFilters}>
+                    <Row>
+                        {/* From Date */}
+                        <Col md="2" className="py-2">
+                            <Form.Group controlId="fromDate">
+                                <Form.Label>From Date</Form.Label>
+                                <Form.Control
+                                    type="date"
+                                    value={fromDate}
+                                    onChange={(e) => setFromDate(e.target.value)}
+                                />
+                            </Form.Group>
+                        </Col>
+                        
+                        {/* To Date */}
+                        <Col md="2" className="py-2">
+                            <Form.Group controlId="toDate">
+                                <Form.Label>To Date</Form.Label>
+                                <Form.Control
+                                    type="date"
+                                    value={toDate}
+                                    onChange={(e) => setToDate(e.target.value)}
+                                />
+                            </Form.Group>
+                        </Col>
+                        
+                        {/* Customer Filter */}
+                        <Col md="2" className="py-2">
+                            <Form.Group controlId="customerNo">
+                                <Form.Label>Customer No*</Form.Label>
+                                <Form.Select
+                                    value={customerCode}
+                                    onChange={(e) => setCustomerCode(e.target.value)}
+                                    required
+                                >
+                                    <option value="">Select Customer No</option>
+                                    {customers.map((cust) => (
+                                        <option key={cust.customer_no} value={cust.customer_no}>
+                                            {cust.customer_no} - {cust.name}
+                                        </option>
+                                    ))}
+                                </Form.Select>
+                            </Form.Group>
+                        </Col>
+
+                        {/* Chit Type Dropdown */}
+                        <Col md="2" className="py-2">
+                            <Form.Group controlId="chitType">
+                                <Form.Label>Chit Type</Form.Label>
+                                <Form.Select
+                                    value={chitTypeFilter}
+                                    onChange={(e) => setChitTypeFilter(e.target.value)}
+                                >
+                                    <option value="">All Chit Types</option>
+                                    {chitTypes.map((chit) => (
+                                        <option key={chit.chit_type_id} value={chit.chit_type}>
+                                            {chit.chit_type}
+                                        </option>
+                                    ))}
+                                </Form.Select>
+                            </Form.Group>
+                        </Col>
+
+                        {/* Payment Status Dropdown */}
+                        <Col md="2" className="py-2">
+                            <Form.Group controlId="paymentStatus">
+                                <Form.Label>Payment Status</Form.Label>
+                                <Form.Select
+                                    value={paymentStatusFilter}
+                                    onChange={(e) => setPaymentStatusFilter(e.target.value)}
+                                >
+                                    <option value="">All Statuses</option>
+                                    <option value="paid">paid</option>
+                                    <option value="pending">pending</option>
+                                </Form.Select>
+                            </Form.Group>
+                        </Col>
+                        
+                        {/* Apply Button */}
+                        <Col md="2" className="py-2 d-flex align-items-end">
+                            <ClickButton 
+                                label="Apply Filters"
+                                disabled={loading} 
+                                onClick={handleApplyFilters}
+                            >
+                                {loading ? 'Applying...' : 'Apply Filters'}
+                            </ClickButton>
+                        </Col>
+                    </Row>
+                </Form>
+                {/* --- End of Form --- */}
+
+                <Row>
+                    <Col xs="12" className="py-3">
+                        
+                        
+                        <Container fluid className="p-4">
+                            <Row>
+                                <Col lg="12">
+                                    <Table
+                                        bordered
+                                        hover
+                                        striped
+                                        responsive
+                                        className="mt-4 shadow-sm rounded"
+                                    >
+                                        <thead className="table-dark">
+                                            <tr>
+                                                <th>S.No</th>
+                                                <th>Collection Date</th>
+                                                <th>Customer No.</th>
+                                                <th>Customer Name</th>
+                                                <th>Chit Type</th>
+                                                <th>Due No.</th>
+                                                <th>Due Amount</th>
+                                                <th>Paid Amount</th>
+                                                <th>Balance Amount</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {collectionData.length > 0 ? (
+                                                collectionData.map((item, index) => (
+                                                    <tr key={index}>
+                                                        <td>{index + 1}</td>
+                                                        <td>
+                                                            {item.collection_date
+                                                                ? new Date(item.collection_date).toLocaleDateString("en-GB")
+                                                                : "-"}
+                                                        </td>
+                                                        <td>{item.customer_no}</td>
+                                                        <td>{item.name}</td>
+                                                        <td>{item.chit_type}</td>
+                                                        <td>{item.due_no}</td>
+                                                        <td>{item.due_amt}</td>
+                                                        <td>{item.paid_amt}</td>
+                                                        <td>{item.balance_amt}</td>
+                                                        <td>{item.payment_status}</td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td
+                                                        colSpan={10} 
+                                                        className="text-center text-muted py-4"
+                                                    >
+                                                        {loading ? 'Loading...' : 'No collection data found'}
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </Table>
+                                </Col>
+                            </Row>
+                        </Container>
+                    </Col>
+                </Row>
             </Container>
-          </Col>
-        </Row>
-      </Container>
-    </div>
-  );
+        </div>
+    );
 };
 
 export default CollectionReport;
