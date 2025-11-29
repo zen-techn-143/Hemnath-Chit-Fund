@@ -102,8 +102,7 @@ button {
 
 /* Submit (Blue) */
 .create-btn {
-  background: rgb(122, 122, 197) !important;
-  /* background:#574d1fe3!important; */
+  background: var(--theme-color-primary) !important;
 }
 
 /* Cancel (Red) */

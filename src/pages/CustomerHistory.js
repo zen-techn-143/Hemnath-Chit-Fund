@@ -103,9 +103,9 @@ const CustomerHistory = () => {
                     hover
                     striped
                     responsive
-                    className="mt-4 shadow-sm rounded"
+                    className="mt-4 shadow-sm rounded overflow-hidden"
                   >
-                    <thead className="table-dark">
+                    <thead className="table-dark" style={{borderRadius: "10px" }}>
                       <tr>
                         <th>S.No</th>
                         <th>Date</th>

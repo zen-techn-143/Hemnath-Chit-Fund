@@ -9,3 +9,19 @@
   }
   
   
+  .status-paid-badge {
+    background-color: #9fbba6;  
+    color: #155724; 
+    padding: 0.25em 0.6em;
+    border-radius: 0.25rem;
+    font-weight: 900;
+    font-size: 80%;
+}
+ .status-pending-badge {
+    background-color: #cc7d7d; 
+    color: #155724; 
+    padding: 0.25em 0.6em;
+    border-radius: 0.25rem;
+    font-weight: 900;
+    font-size: 80%;
+}

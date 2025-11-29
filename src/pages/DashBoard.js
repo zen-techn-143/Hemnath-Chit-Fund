@@ -39,6 +39,8 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import "./Dashboard.css";
+import { margin } from "@mui/system";
 
 const dashboardCountData = [
   {
@@ -389,35 +391,25 @@ const DashBoard = () => {
 
   // ⭐ CUSTOM TOOLTIP RENDER FUNCTION
   const renderPieCustomTooltip = ({ active, payload }) => {
-    console.log(payload);
     if (active && payload && payload.length) {
       const sliceColor = payload[0].color;
       const data = payload[0].payload;
-
       return (
-        <Box
-          sx={{
-            padding: "8px 12px",
-            backgroundColor: "rgba(255, 255, 255, 0.9)",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
-          }}
-        >
-          <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+        <Box className="pie-tooltip-container">
+          <Typography variant="body2" className="pie-tooltip-title">
             {data.chit_type}
           </Typography>
 
           <Typography variant="body2" sx={{ color: sliceColor }}>
             Count:{" "}
-            <Box component="span" sx={{ fontWeight: "bold" }}>
+            <Box component="span" className="pie-tooltip-value">
               {data.count}
             </Box>
           </Typography>
 
           <Typography variant="body2" sx={{ color: sliceColor }}>
             Percentage:{" "}
-            <Box component="span" sx={{ fontWeight: "bold" }}>
+            <Box component="span" className="pie-tooltip-value">
               {data.percentage}%
             </Box>
           </Typography>
@@ -428,16 +420,12 @@ const DashBoard = () => {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", backgroundColor: "#e9e9e9", py: 4 }}>
+    <Box className="dashboard-page-container">
       <Container maxWidth="xl">
         <Typography
           variant="h5"
-          sx={{
-            mb: 3,
-            fontWeight: "bold",
-            color: "#555",
-            textTransform: "uppercase",
-          }}
+          className="dashboard-page-title"
+          sx={{ mb: 3, color: "#312929ff", textTransform: "uppercase" }}
         >
           Dashboard
         </Typography>
@@ -452,15 +440,8 @@ const DashBoard = () => {
 
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} md={8}>
-            <Card sx={{ height: 400, boxShadow: 3, borderRadius: 1, p: 2 }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  mb: 1,
-                }}
-              >
+            <Card className="chart-card">
+              <Box className="card-header-flex">
                 {/* --- HEADER BLOCK --- */}
                 <Box>
                   <Typography variant="h6">{chartTitle}</Typography>
@@ -504,14 +485,7 @@ const DashBoard = () => {
                 null}
               </Box>
               {barGraphLoading ? (
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: "80%",
-                  }}
-                >
+                <Box className="flex-center-80-height">
                   <Typography variant="h6">
                     {view === "monthly"
                       ? "Loading Monthly Data..."
@@ -639,23 +613,10 @@ const DashBoard = () => {
                 subheader="Total chits by type"
                 sx={{ borderBottom: "1px solid #eee" }}
               />
-              <CardContent
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  height: 300,
-                }}
-              >
+              <CardContent className="card-content-center-300">
                 {pieChartLoading ? (
                   <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      height: "100%",
-                    }}
+                    className="flex-column-center-full-height"
                   >
                     <CircularProgress />
                     <Typography variant="caption" sx={{ mt: 2 }}>
@@ -747,9 +708,9 @@ const DashBoard = () => {
                           <TableCell>{row.plan}</TableCell>
                           <TableCell>
                             {new Date(row.date).toLocaleDateString("en-US", {
-                              day: "2-digit", 
-                              month: "short", 
-                              year: "numeric", 
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
                             })}
                           </TableCell>
                           <TableCell

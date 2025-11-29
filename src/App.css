@@ -204,10 +204,30 @@ input:focus {
 }
 
 .App {
- background:#8d3338b8 !important;
+ /* Set the default (Theme A) background */
+ /* background-color: #97b8ff;  */
+ /* background: black; */
+ background: var(--theme-bg-page) !important;
  min-height: 100vh; 
  transition: background-color 0.3s ease;
- font-family: serif !important;
+}
+
+/* Theme B */
+.theme-b .App {
+ background: var(--theme-bg-page) !important;
+ min-height: 100vh;
+}
+
+/* Theme C (Ruby Red/Maroon) */
+.theme-c .App {
+ background-color: var(--theme-bg-page) !important;
+ min-height: 100vh;
+}
+
+
+.theme-d .App {
+background-color: var(--theme-bg-page) !important; 
+ min-height: 100vh;
 }
 
 
@@ -224,7 +244,7 @@ input:focus {
 }
 
 .main {
- background:#eddcdc!important;
+ background: var(--theme-bg-main-content) !important;
   padding-top: 65px;
   border-radius: 10px;
   padding: 20px;
